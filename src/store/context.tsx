@@ -13,6 +13,7 @@ type Action =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | undefined }
   | { type: 'UPDATE_STREAK'; payload: number }
+  | { type: 'SET_THEME'; payload: 'light' | 'dark' }
   | { type: 'RESET_SESSION' };
 
 /**
@@ -30,6 +31,8 @@ const appReducer = (state: AppState, action: Action): AppState => {
       return { ...state, error: action.payload, isLoading: false };
     case 'UPDATE_STREAK':
       return { ...state, streak: action.payload };
+    case 'SET_THEME':
+      return { ...state, theme: action.payload };
     case 'RESET_SESSION':
       return { ...state, currentSession: undefined };
     default:
@@ -52,6 +55,16 @@ const AppContext = createContext<AppContextProps | undefined>(undefined);
  */
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(appReducer, initialAppState);
+
+  // Sync theme with HTML class
+  React.useEffect(() => {
+    const root = window.document.documentElement;
+    if (state.theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [state.theme]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

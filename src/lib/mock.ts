@@ -123,5 +123,6 @@ export const initialAppState: AppState = {
   neuroPrint: mockNeuroPrint,
   currentSession: mockProcessedOutput,
   isLoading: false,
-  streak: 5
+  streak: 5,
+  theme: 'dark'
 };

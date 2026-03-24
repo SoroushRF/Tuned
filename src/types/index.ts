@@ -102,4 +102,5 @@ export interface AppState {
   isLoading: boolean;
   error?: string;
   streak: number;             // ADHD / Universal streak counter
+  theme: 'light' | 'dark';
 }
