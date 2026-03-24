@@ -853,11 +853,6 @@ This joint session must be completed before any parallel work begins to lock the
   - `lib/neuroprint/weights.ts` (Question weight definitions)
   - `app/onboarding/page.tsx`
   - `components/onboarding/QuestionCard.tsx`, `OptionButton.tsx`, `FreeTextFallback.tsx`, `ProgressDots.tsx`
-- **Scholar Feature (prompt → API → UI)**
-  - `lib/gemini/prompts/scholar.ts`
-  - `app/api/gemini/scholar/route.ts`
-  - `hooks/useScholar.ts`
-  - `components/study/scholar/SideBySidePanel.tsx`, `DifficultySlider.tsx`, `TermTooltip.tsx`, `ConceptMap.tsx`
 
 **Parsa owns these features end-to-end:**
 - **Podcast Feature (prompt → API → UI)**
@@ -875,6 +870,11 @@ This joint session must be completed before any parallel work begins to lock the
   - `app/api/gemini/quiz/route.ts`
   - `hooks/useQuiz.ts`
   - `components/quiz/QuizCard.tsx`, `RescueCard.tsx`
+- **Scholar Feature (prompt → API → UI)**
+  - `lib/gemini/prompts/scholar.ts`
+  - `app/api/gemini/scholar/route.ts`
+  - `hooks/useScholar.ts`
+  - `components/study/scholar/SideBySidePanel.tsx`, `DifficultySlider.tsx`, `TermTooltip.tsx`, `ConceptMap.tsx`
 - **Study Surface + App Shell**
   - `app/page.tsx` (Home/Landing)
   - `app/study/page.tsx`
@@ -925,8 +925,8 @@ Hour 0–1.5   → BOTH: Phase 0
                types/index.ts + lib/mock.ts + store/context.tsx + project init
 
 Hour 1.5–7   → FULL PARALLEL
-               Soroush: NeuroPrint engine → onboarding logic → upload pipeline → scholar feature
-               Parsa:   Study surface shell → podcast feature → sprint feature → quiz feature
+               Soroush: NeuroPrint engine → onboarding logic → upload pipeline → core API
+               Parsa:   Study surface shell → podcast → sprint → quiz → scholar features
                (both build against mock data, no coordination needed)
 
 Hour 7       → HANDOFF 1 (5 min)
@@ -1012,15 +1012,15 @@ Hour 11–12   → BOTH: Demo video recording + README
 | Sprint | UI | `StreakCounter` component | component | U0 | ✅ | Parsa | P1-parallel | nothing | 20 min | ⬜ |
 | Sprint | UI | `MilestoneToast` component | component | U1 | 🟡 | Parsa | P1-parallel | nothing | 30 min | ⬜ |
 | Sprint | UI | `SprintTimer` opt-in component | component | U1 | ⬜ | Parsa | P1-parallel | nothing | 30 min | ⬜ |
-| Scholar | Pipeline | Side-by-side simplification prompt | prompt | U0 | ✅ | Soroush | P1-parallel | lib/mock.ts | 45 min | ⬜ |
-| Scholar | Pipeline | Tooltip generation prompt | prompt | U0 | ✅ | Soroush | P1-parallel | nothing | 30 min | 0 |
-| Scholar | API | Scholar API route (`/api/gemini/scholar`) | api | U0 | ✅ | Soroush | P1-parallel | prompt | 30 min | ⬜ |
-| Scholar | Hook | `hooks/useScholar.ts` (slider/tooltip state) | hook | U0 | ✅ | Soroush | P1-parallel | types/index.ts | 45 min | ⬜ |
-| Scholar | UI | `SideBySidePanel` layout component | component | U0 | ✅ | Soroush | P1-parallel | lib/mock.ts | 60 min | ⬜ |
-| Scholar | UI | Amber underline for key terms | component | U0 | ✅ | Soroush | P1-parallel | nothing | 30 min | ⬜ |
-| Scholar | UI | `TermTooltip` (def + exam note) | component | U0 | ✅ | Soroush | P1-parallel | nothing | 45 min | ⬜ |
-| Scholar | UI | `DifficultySlider` + vector signal logic | component | U0 | ✅ | Soroush | P1-parallel | nothing | 45 min | ⬜ |
-| Scholar | UI | `ConceptMap` React Flow component | component | U1 | 🟡 | Soroush | P1-parallel | nothing | 2 hrs | ⬜ |
+| Scholar | Pipeline | Side-by-side simplification prompt | prompt | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 45 min | ⬜ |
+| Scholar | Pipeline | Tooltip generation prompt | prompt | U0 | ✅ | Parsa | P1-parallel | nothing | 30 min | 0 |
+| Scholar | API | Scholar API route (`/api/gemini/scholar`) | api | U0 | ✅ | Parsa | P1-parallel | prompt | 30 min | ⬜ |
+| Scholar | Hook | `hooks/useScholar.ts` (slider/tooltip state) | hook | U0 | ✅ | Parsa | P1-parallel | types/index.ts | 45 min | ⬜ |
+| Scholar | UI | `SideBySidePanel` layout component | component | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 60 min | ⬜ |
+| Scholar | UI | Amber underline for key terms | component | U0 | ✅ | Parsa | P1-parallel | nothing | 30 min | ⬜ |
+| Scholar | UI | `TermTooltip` (def + exam note) | component | U0 | ✅ | Parsa | P1-parallel | nothing | 45 min | ⬜ |
+| Scholar | UI | `DifficultySlider` + vector signal logic | component | U0 | ✅ | Parsa | P1-parallel | nothing | 45 min | ⬜ |
+| Scholar | UI | `ConceptMap` React Flow component | component | U1 | 🟡 | Parsa | P1-parallel | nothing | 2 hrs | ⬜ |
 | Gemini Core | Pipeline | Main content processing prompt builder | prompt | U0 | ✅ | Soroush | P1-parallel | nothing | 60 min | ⬜ |
 | Gemini Core | Pipeline | NeuroPrint vector injection logic | engine | U0 | ✅ | Soroush | P1-parallel | nothing | 30 min | ⬜ |
 | Gemini Core | Pipeline | Target concept extraction prompt | prompt | U1 | 🟡 | Soroush | P1-parallel | nothing | 30 min | ⬜ |
@@ -1039,7 +1039,7 @@ Hour 11–12   → BOTH: Demo video recording + README
 | Integration | QA | Full end-to-end user flow testing | integration | U0 | ✅ | Both | P3-polish | all handoffs | 60 min | ⬜ |
 | Demo | Deliver | Write demo script & storyboard | demo | U0 | ✅ | Both | P3-polish | nothing | 45 min | ⬜ |
 | Demo | Deliver | Screen recording & editing (4 min) | demo | U0 | ✅ | Both | P3-polish | QA | 60 min | ⬜ |
-| Demo | Deliver | README & Final Repo submission | demo | U0 | ✅ | Soroush | P3-polish | nothing | 30 min | ⬜ |
+| Demo | Deliver | README & Final Repo submission | demo | U0 | ✅ | Both | P3-polish | nothing | 30 min | ⬜ |
 
 ---
 
