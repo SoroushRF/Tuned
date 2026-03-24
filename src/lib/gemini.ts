@@ -1,7 +1,10 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NeuroPrintVector, ProcessedOutput } from "@/types";
 
-const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "AIzaSyASBnD1d90JNrwx_dIDEOTXgpt9_72X6IQ";
+const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
+if (!API_KEY) {
+  console.warn("Nuro Warning: NEXT_PUBLIC_GEMINI_API_KEY is missing in your .env.local file.");
+}
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 /**
