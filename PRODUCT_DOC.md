@@ -959,9 +959,9 @@ Hour 11–12   → BOTH: Demo video recording + README
 | Setup | Repo | Init Next.js 14 + Tailwind + TypeScript | foundation | U0 | ✅ | Soroush | P0-setup | nothing | 15 min | ✅ |
 | Setup | Repo | Define shared interfaces in `types/index.ts` | foundation | U0 | ✅ | Both | P0-setup | nothing | 40 min | ✅ |
 | Setup | Repo | Create mock data file `lib/mock.ts` | foundation | U0 | ✅ | Both | P0-setup | types/index.ts | 15 min | ✅ |
-| Setup | Repo | Set up `store/context.tsx` with useReducer | foundation | U0 | ✅ | Both | P0-setup | types/index.ts | 20 min | ⬜ |
-| Setup | Repo | Set up Gemini API client in `lib/gemini/client.ts` | foundation | U0 | ✅ | Soroush | P0-setup | nothing | 10 min | ⬜ |
-| Setup | Repo | Define model name constants in `lib/gemini/models.ts` | foundation | U0 | ✅ | Soroush | P0-setup | nothing | 10 min | ⬜ |
+| Setup | Repo | Set up `store/context.tsx` with useReducer | foundation | U0 | ✅ | Both | P0-setup | types/index.ts | 20 min | ✅ |
+| Setup | Repo | Set up Gemini API client in `lib/gemini/client.ts` | foundation | U0 | ✅ | Soroush | P0-setup | nothing | 10 min | ✅ |
+| Setup | Repo | Define model name constants in `lib/gemini/models.ts` | foundation | U0 | ✅ | Soroush | P0-setup | nothing | 10 min | ✅ |
 | Setup | Repo | Install React Flow, pdf.js, mammoth.js | foundation | U0 | ✅ | Soroush | P0-setup | nothing | 10 min | ✅ |
 | NeuroPrint | Engine | Write question weight definitions (`weights.ts`) | engine | U0 | ✅ | Soroush | P1-parallel | types/index.ts | 30 min | ⬜ |
 | NeuroPrint | Engine | Implement vector calculation + normalization | engine | U0 | ✅ | Soroush | P1-parallel | weights.ts | 45 min | ⬜ |
