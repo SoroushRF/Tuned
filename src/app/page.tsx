@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/store/context';
-import NeuroPrintSurvey from '@/components/Survey/NeuroPrintSurvey';
 import NeuroPrintProfile from '@/components/Profile/NeuroPrintProfile';
 
 const IconMoon = () => (
@@ -22,7 +21,6 @@ const IconArrowRight = () => (
 export default function Home() {
   const { state, dispatch } = useAppContext();
   const router = useRouter();
-  const [isSurveyOpen, setIsSurveyOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const isDark = state.theme === 'dark';
 
@@ -73,19 +71,19 @@ export default function Home() {
           No more one-size-fits-all studying. Nuro builds a digital map of how you learn and transforms your materials in real-time.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-6 mb-32">
-          <button 
-            onClick={() => setIsSurveyOpen(true)}
-            className="group px-12 py-6 rounded-[2.5rem] bg-foreground text-background font-black text-xl shadow-2xl shadow-foreground/10 hover:scale-[1.08] active:scale-95 transition-all flex items-center gap-4"
+        <div className="flex flex-col sm:flex-row gap-6 mb-32 relative z-10">
+          <Link 
+            href="/onboarding"
+            className="group px-12 py-6 rounded-[3rem] bg-foreground text-background font-black text-xl shadow-[0_40px_80px_-15px_rgba(0,0,0,0.3)] hover:scale-[1.08] active:scale-95 transition-all flex items-center gap-5 uppercase tracking-widest"
           >
-             Start Studying ✨
-            <IconArrowRight />
-          </button>
+             Start Analyzing ✨
+            <div className="group-hover:translate-x-2 transition-transform duration-500"><IconArrowRight /></div>
+          </Link>
           <button 
             onClick={() => setIsProfileOpen(true)}
-            className="px-12 py-6 rounded-[2.5rem] border-2 border-border font-black text-xl hover:bg-secondary transition-all"
+            className="px-12 py-6 rounded-[3rem] border-2 border-border font-black text-xl hover:bg-secondary transition-all uppercase tracking-widest"
           >
-            See Your Profile
+            Review Profile
           </button>
         </div>
 
@@ -119,16 +117,6 @@ export default function Home() {
             <span className="text-[10px] font-bold uppercase tracking-[0.4em]">Parsa × Soroush</span>
          </div>
       </footer>
-
-      {isSurveyOpen && (
-        <NeuroPrintSurvey 
-          onComplete={(vector) => {
-            dispatch({ type: 'SET_NEUROPRINT', payload: vector });
-            setIsSurveyOpen(false);
-            router.push('/study');
-          }} 
-        />
-      )}
 
       {isProfileOpen && (
         <NeuroPrintProfile 

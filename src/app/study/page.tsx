@@ -37,54 +37,57 @@ export default function StudyPage() {
   return (
     <div className={`min-h-screen flex flex-col bg-background text-foreground transition-colors duration-400`}>
       {/* Friendly Header */}
-      <header className={`h-20 border-b border-border flex items-center justify-between px-10 bg-card/80 backdrop-blur-md sticky top-0 z-50 shadow-sm transition-colors`}>
-        <div className="flex items-center gap-12">
-          <Link href="/" className="flex items-center gap-4 group">
-            <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-white font-black shadow-xl shadow-primary/20 group-hover:scale-110 transition-transform">
-              N
-            </div>
-            <span className="text-2xl font-bold tracking-tighter uppercase">Nuro</span>
+      {/* V8 Gloss Header - Light Mode Optimized */}
+      <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-card/30 backdrop-blur-3xl px-8 py-5 flex items-center justify-between shadow-2xl shadow-primary/5">
+        <div className="flex items-center gap-10">
+          <Link href="/" className="flex items-center gap-3 group transition-transform hover:scale-105 active:scale-95">
+            <div className="w-10 h-10 rounded-2xl bg-foreground text-background flex items-center justify-center text-xl shadow-2xl animate-float">✨</div>
+            <span className="text-2xl font-black tracking-tightest uppercase text-foreground">Nuro</span>
           </Link>
-          <nav className="flex items-center gap-8">
+          <nav className="flex items-center gap-6">
             <button 
               onClick={() => setActiveTab('workspace')}
-              className={`text-[11px] font-black tracking-[0.2em] flex items-center gap-3 uppercase transition-all ${
-                activeTab === 'workspace' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+              className={`px-5 py-2.5 rounded-full text-[10px] font-black tracking-[0.3em] flex items-center gap-3 uppercase transition-all duration-500 ${
+                activeTab === 'workspace' 
+                  ? 'bg-foreground text-background shadow-2xl shadow-foreground/20' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
               }`}
             >
               <IconLayout /> Workspace
             </button>
             <button 
               onClick={() => setActiveTab('upload')}
-              className={`text-[11px] font-black tracking-[0.2em] flex items-center gap-3 uppercase transition-all ${
-                activeTab === 'upload' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+              className={`px-5 py-2.5 rounded-full text-[10px] font-black tracking-[0.3em] flex items-center gap-3 uppercase transition-all duration-500 ${
+                activeTab === 'upload' 
+                  ? 'bg-foreground text-background shadow-2xl shadow-foreground/20' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
               }`}
             >
                Upload Desk
             </button>
           </nav>
         </div>
-        
-        <div className="flex items-center gap-8">
-          <div className="hidden sm:flex items-center gap-3 px-4 py-2 rounded-2xl border border-primary/20 bg-primary/5 text-primary">
-            <span className="text-[11px] font-black uppercase tracking-widest">Streak</span>
-            <span className="text-sm font-black">{streak} Days ✨</span>
+
+        <div className="flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-3 px-6 py-2.5 rounded-full bg-secondary/60 border border-border/80 shadow-inner">
+             <span className="w-2 h-2 rounded-full bg-primary/60 animate-pulse" />
+             <span className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/40">Syncing Matrix</span>
           </div>
-          
+
           <button 
             onClick={toggleTheme}
-            className="p-3 rounded-2xl hover:bg-secondary border border-transparent hover:border-border transition-all active:scale-95"
-            title="Toggle theme"
+            className="w-11 h-11 rounded-2xl bg-secondary border border-border flex items-center justify-center hover:bg-muted transition-all active:scale-90 shadow-sm"
           >
             {isDark ? <IconSun /> : <IconMoon />}
           </button>
           
           <button 
             onClick={() => setIsProfileOpen(true)}
-            className="w-10 h-10 rounded-2xl bg-secondary border border-border flex items-center justify-center cursor-pointer hover:bg-muted transition-all group shadow-sm"
+            className="w-11 h-11 rounded-2xl bg-secondary border border-border flex items-center justify-center cursor-pointer hover:bg-muted transition-all active:scale-90 shadow-sm relative group"
             aria-label="View Profile"
           >
-             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+             <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-primary/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-40 transition-opacity" />
           </button>
         </div>
       </header>
