@@ -93,7 +93,7 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
     ].find((term) => term.term.toLowerCase() === lower) || null;
   }, [activeChunk?.keyTerms, content.keyTerms, scholar.activeTerm]);
 
-  const handlePickTerm = useCallback((term: string, anchorEl: HTMLElement) => {
+  const handlePickTermFromOriginal = useCallback((term: string, anchorEl: HTMLElement) => {
     if (scholar.activeTerm?.toLowerCase() === term.toLowerCase()) {
       // Toggle off on repeated click.
       setDefinitionAnchorRect(null);
@@ -103,6 +103,20 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
 
     const rect = anchorEl.getBoundingClientRect();
     setDefinitionAnchorRect(rect);
+    scholar.selectTerm(term);
+  }, [scholar]);
+
+  const handlePickTermFromSimplified = useCallback((term: string, anchorEl: HTMLElement) => {
+    // Anchor not used here: simplified column should not show floating definitions.
+    void anchorEl;
+    if (scholar.activeTerm?.toLowerCase() === term.toLowerCase()) {
+      setDefinitionAnchorRect(null);
+      scholar.selectTerm(null);
+      return;
+    }
+
+    // Only the ORIGINAL (left) column shows the floating definition card.
+    setDefinitionAnchorRect(null);
     scholar.selectTerm(term);
   }, [scholar]);
   const sourceTerms = useMemo(() => {
@@ -115,13 +129,13 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
 
   const displayedOriginal = useMemo(() => {
     const text = limitTextByDepth(activeChunk.originalText, scholar.readingDepth);
-    return highlightText(text, sourceTerms, scholar.activeTerm, handlePickTerm);
-  }, [activeChunk.originalText, scholar.activeTerm, scholar.readingDepth, handlePickTerm, sourceTerms]);
+    return highlightText(text, sourceTerms, scholar.activeTerm, handlePickTermFromOriginal);
+  }, [activeChunk.originalText, scholar.activeTerm, scholar.readingDepth, handlePickTermFromOriginal, sourceTerms]);
 
   const displayedSimplified = useMemo(() => {
     const text = limitTextByDepth(activeChunk.simplifiedText, scholar.readingDepth);
-    return highlightText(text, sourceTerms, scholar.activeTerm, handlePickTerm);
-  }, [activeChunk.simplifiedText, scholar.activeTerm, scholar.readingDepth, handlePickTerm, sourceTerms]);
+    return highlightText(text, sourceTerms, scholar.activeTerm, handlePickTermFromSimplified);
+  }, [activeChunk.simplifiedText, scholar.activeTerm, scholar.readingDepth, handlePickTermFromSimplified, sourceTerms]);
 
   const topKeyTerms = useMemo(() => {
     return [...content.keyTerms]
@@ -204,8 +218,6 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
       return;
     }
 
-    if (!definitionAnchorRect) return;
-
     const onMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (!target) return;
@@ -219,7 +231,7 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
 
     document.addEventListener('mousedown', onMouseDown);
     return () => document.removeEventListener('mousedown', onMouseDown);
-  }, [definitionAnchorRect, scholar, scholar.activeTerm, scholar.selectTerm]);
+  }, [scholar, scholar.activeTerm, scholar.selectTerm]);
 
   return (
     <div className="flex h-full flex-col gap-8 animate-fade-in-up duration-1000 max-w-7xl mx-auto py-10 px-6 md:px-10">
@@ -348,31 +360,13 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
             {displayedSimplified}
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-5 grid gap-3 md:grid-cols-1">
             <div className="rounded-[1.5rem] border border-border/20 bg-background p-4">
               <p className="text-[10px] font-black uppercase tracking-[0.35em] text-muted-foreground/45">Reading depth</p>
               <p className="mt-2 text-xl font-black tracking-tightest">{readingDepthLabel}</p>
               <p className="mt-2 text-xs text-muted-foreground">
                 Lower values show a lighter rewrite. Higher values keep more detail in view.
               </p>
-            </div>
-            <div className="rounded-[1.5rem] border border-border/20 bg-background p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.35em] text-muted-foreground/45">Depth control</p>
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/55">
-                  {Math.round(scholar.readingDepth * 100)}%
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={scholar.readingDepth}
-                onChange={(event) => scholar.setReadingDepth(parseFloat(event.target.value))}
-                className="mt-4 w-full accent-primary"
-                aria-label="Reading depth"
-              />
             </div>
           </div>
         </section>

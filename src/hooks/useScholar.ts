@@ -31,7 +31,18 @@ const buildFallbackChunk = (content: ScholarContent): ScholarChunk => ({
 
 const getChunks = (content: ScholarContent) => {
   if (Array.isArray(content.chunks) && content.chunks.length > 0) {
-    return content.chunks;
+    const chunks = content.chunks;
+
+    // Gemini may sometimes output duplicate page labels (e.g. two "page 1").
+    // For UI correctness, normalize labels into a strictly increasing sequence.
+    const firstLabel = (chunks[0]?.pageLabel || '').trim();
+    const prefixMatch = firstLabel.match(/^(page|chunk)\b/i);
+    const prefix = prefixMatch ? prefixMatch[1].charAt(0).toUpperCase() + prefixMatch[1].slice(1).toLowerCase() : 'Chunk';
+
+    return chunks.map((chunk, index) => ({
+      ...chunk,
+      pageLabel: `${prefix} ${index + 1}`,
+    }));
   }
   return [buildFallbackChunk(content)];
 };

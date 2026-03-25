@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { NeuroPrintDeltas, NeuroPrintVector } from '@/types';
 import { SURVEY_QUESTIONS } from '@/lib/neuroprint/weights';
 import { calculateVector } from '@/lib/neuroprint/engine';
@@ -23,6 +23,14 @@ export default function OnboardingFlow({ onBeginCalibration, onComplete }: Onboa
   const [maxStepReached, setMaxStepReached] = useState(0);
   const [history, setHistory] = useState<Record<number, StepState>>({});
   const [isCalibrating, setIsCalibrating] = useState(false);
+  const autoAdvanceTimeoutRef = useRef<number | null>(null);
+
+  const clearAutoAdvanceTimeout = useCallback(() => {
+    if (autoAdvanceTimeoutRef.current !== null) {
+      window.clearTimeout(autoAdvanceTimeoutRef.current);
+      autoAdvanceTimeoutRef.current = null;
+    }
+  }, []);
 
   const currentQuestion = SURVEY_QUESTIONS[currentStep];
 
@@ -80,6 +88,7 @@ export default function OnboardingFlow({ onBeginCalibration, onComplete }: Onboa
   };
 
   const handleNext = useCallback(async () => {
+    clearAutoAdvanceTimeout();
     if (currentStep < SURVEY_QUESTIONS.length - 1) {
       setCurrentStep((prev) => prev + 1);
       return;
@@ -102,15 +111,17 @@ export default function OnboardingFlow({ onBeginCalibration, onComplete }: Onboa
     } finally {
       setIsCalibrating(false);
     }
-  }, [currentStep, history, onBeginCalibration, onComplete, totalDeltas]);
+  }, [clearAutoAdvanceTimeout, currentStep, history, onBeginCalibration, onComplete, totalDeltas]);
 
   const handleBack = () => {
+    clearAutoAdvanceTimeout();
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1);
     }
   };
 
   const handleStepJump = (step: number) => {
+    clearAutoAdvanceTimeout();
     if (step <= maxStepReached) {
       setCurrentStep(step);
     }
@@ -137,7 +148,8 @@ export default function OnboardingFlow({ onBeginCalibration, onComplete }: Onboa
       updateCurrentStepState({ selectedIndices: newIndices });
     } else {
       updateCurrentStepState({ selectedIndices: [index] });
-      setTimeout(() => {
+      clearAutoAdvanceTimeout();
+      autoAdvanceTimeoutRef.current = window.setTimeout(() => {
         if (currentStep < SURVEY_QUESTIONS.length - 1) {
           setCurrentStep(prev => prev + 1);
         }
@@ -159,6 +171,11 @@ export default function OnboardingFlow({ onBeginCalibration, onComplete }: Onboa
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentStep, history, handleNext]);
+
+  // Cleanup any pending auto-advance when unmounting.
+  useEffect(() => {
+    return () => clearAutoAdvanceTimeout();
+  }, [clearAutoAdvanceTimeout]);
 
   const isNextEnabled = (history[currentStep]?.selectedIndices?.length || 0) > 0 || (history[currentStep]?.freeText?.trim()?.length || 0) > 0;
   const isLastStep = currentStep === SURVEY_QUESTIONS.length - 1;

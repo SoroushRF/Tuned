@@ -21,7 +21,7 @@ const controlClass =
   'rounded-full border border-border/30 bg-card px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-foreground transition-all hover:bg-secondary/25 active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 const primaryControlClass =
-  'rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-primary-foreground transition-all hover:opacity-90 active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+  'rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-primary-foreground transition-all hover:opacity-90 active:translate-y-[1px] disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background';
 
 const secondaryControlClass =
   'rounded-full border border-primary/15 bg-primary/[0.03] px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-primary transition-all hover:bg-primary/[0.06] active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45 focus-visible:ring-offset-2 focus-visible:ring-offset-background';
@@ -96,12 +96,13 @@ export default function SprintPanel({ cards }: SprintPanelProps) {
   const isTimerActive = timerEnabled && isTimerRunning;
 
   const handleCompleteCurrent = useCallback(() => {
+    if (isComplete) return;
     dismissRescue();
     markCardActive(currentIndex);
     promoteSignal(isTimerActive ? 'timed_completion' : 'sprint_complete');
     completeCard(currentIndex);
     nextCardStep();
-  }, [completeCard, currentIndex, dismissRescue, isTimerActive, markCardActive, nextCardStep, promoteSignal]);
+  }, [completeCard, currentIndex, dismissRescue, isComplete, isTimerActive, markCardActive, nextCardStep, promoteSignal]);
 
   const handleResetClue = useCallback(() => {
     promoteSignal('skip');
@@ -162,7 +163,9 @@ export default function SprintPanel({ cards }: SprintPanelProps) {
       if (key === 'enter' || key === ' ') {
         event.preventDefault();
         if (showRescue && currentCard.rescue) {
-          handleCompleteCurrent();
+          if (!isComplete) {
+            handleCompleteCurrent();
+          }
           return;
         }
 
@@ -277,6 +280,7 @@ export default function SprintPanel({ cards }: SprintPanelProps) {
                 <button
                   type="button"
                   onClick={() => {
+                    if (isComplete) return;
                     if (isDone || isActive) {
                       triggerRescue(index);
                     }
@@ -408,6 +412,7 @@ export default function SprintPanel({ cards }: SprintPanelProps) {
                     onClick={() => {
                       handleCompleteCurrent();
                     }}
+                    disabled={isComplete}
                       className={primaryControlClass}
                       aria-keyshortcuts="Enter"
                     >
@@ -440,6 +445,7 @@ export default function SprintPanel({ cards }: SprintPanelProps) {
               <button
                 type="button"
                 onClick={handleCompleteCurrent}
+                disabled={isComplete}
                 className={primaryControlClass}
                 aria-keyshortcuts="Enter"
               >

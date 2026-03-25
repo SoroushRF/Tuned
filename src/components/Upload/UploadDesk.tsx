@@ -313,7 +313,7 @@ export default function UploadDesk() {
                  <>
                    <div className="w-5 h-5 border-3 border-primary/35 border-t-primary rounded-full animate-spin" />
                    <span className="inline-flex items-center gap-2 tracking-[0.2em]">
-                     Synthesizing Matrix
+                     Processing
                      <span className="inline-flex items-center gap-0.5" aria-hidden>
                        <span className="text-primary/80 animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
                        <span className="text-primary/80 animate-bounce" style={{ animationDelay: '150ms' }}>.</span>
@@ -323,7 +323,7 @@ export default function UploadDesk() {
                  </>
                ) : (
                  <>
-                    Process Matrix
+                    Process
                     <div className="group-hover:translate-x-1.5 group-hover:-translate-y-0.5 transition-transform duration-500">
                        <IconZap />
                     </div>
