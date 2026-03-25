@@ -190,11 +190,12 @@ export async function POST(req: NextRequest) {
       },
       segmentCount: shortenedScript.segments.length,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logGeminiError('podcast_audio', requestId, error);
     console.error('Podcast Audio API Error:', error);
+    const message = error instanceof Error ? error.message : 'Failed to generate podcast audio.';
     return NextResponse.json(
-      { error: error.message || 'Failed to generate podcast audio.' },
+      { error: message },
       { status: 500 }
     );
   }

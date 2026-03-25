@@ -149,7 +149,7 @@ export const useSprint = (cards: SprintCard[], options: UseSprintOptions = {}) =
     setCurrentIndex(clampIndex(index, cards.length));
     setShowChallenge(false);
     setShowRescue(false);
-  }, [cards.length]);
+  }, [cards.length, currentIndex]);
 
   const advanceCard = useCallback(() => {
     logSprintDebug('advance_card', { from: currentIndex });
@@ -159,14 +159,14 @@ export const useSprint = (cards: SprintCard[], options: UseSprintOptions = {}) =
     });
     setShowChallenge(false);
     setShowRescue(false);
-  }, [cards.length]);
+  }, [cards.length, currentIndex]);
 
   const prevCard = useCallback(() => {
     logSprintDebug('prev_card', { from: currentIndex });
     setCurrentIndex((prev) => Math.max(prev - 1, 0));
     setShowChallenge(false);
     setShowRescue(false);
-  }, []);
+  }, [currentIndex]);
 
   const completeCard = useCallback((index = currentIndex) => {
     logSprintDebug('complete_card', { index, currentIndex, completedCountBefore: completedIndices.length });
@@ -244,7 +244,7 @@ export const useSprint = (cards: SprintCard[], options: UseSprintOptions = {}) =
       }
       return next;
     });
-  }, [timerDurationSeconds]);
+  }, [timerDurationSeconds, timerEnabled]);
 
   const startTimer = useCallback(() => {
     enableTimer();

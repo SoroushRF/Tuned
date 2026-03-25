@@ -89,6 +89,12 @@ export default function SprintPanel({ cards }: SprintPanelProps) {
       : 'Keyboard: Left and right arrows move cards, Enter completes, T toggles timer, R resets clue, Escape pauses.';
   }, [showRescue]);
 
+  const completeButtonLabel = useMemo(() => {
+    if (showRescue) return 'Move on';
+    if (showChallenge) return 'I understand';
+    return 'Complete Clue';
+  }, [showChallenge, showRescue]);
+
   const isTimerActive = timerEnabled && isTimerRunning;
 
   const handleCompleteCurrent = useCallback(() => {
@@ -194,6 +200,8 @@ export default function SprintPanel({ cards }: SprintPanelProps) {
     disableTimer,
     dismissRescue,
     handleCompleteCurrent,
+    handleResetClue,
+    handleTimerToggle,
     isComplete,
     isFirst,
     isTimerRunning,
@@ -334,7 +342,11 @@ export default function SprintPanel({ cards }: SprintPanelProps) {
             <div className="space-y-3">
               <h4 className="text-2xl md:text-3xl font-black tracking-tightest leading-tight">{currentCard.title}</h4>
               <p className="text-[10px] font-black uppercase tracking-[0.35em] text-muted-foreground/45">
-                Stay with the clues before moving on.
+                {showRescue
+                  ? 'Rescue mode: confirm you get it, then continue.'
+                  : showChallenge
+                    ? 'Challenge: when you feel ready, click "I understand".'
+                    : 'Focus: read the clue, then click "Complete Clue".'}
               </p>
             </div>
 
@@ -433,7 +445,7 @@ export default function SprintPanel({ cards }: SprintPanelProps) {
                 className={primaryControlClass}
                 aria-keyshortcuts="Enter"
               >
-                Complete
+                {completeButtonLabel}
               </button>
               <button
                 type="button"

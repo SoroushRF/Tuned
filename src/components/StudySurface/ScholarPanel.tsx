@@ -88,15 +88,6 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
     ]);
   }, [activeChunk?.highlightedTerms, content.highlightedTerms, scholar.keyTerms]);
 
-  const activeTermMeta = useMemo(() => {
-    if (!scholar.activeTerm) return null;
-    const lower = scholar.activeTerm.toLowerCase();
-    return [
-      ...content.keyTerms,
-      ...(activeChunk?.keyTerms || []),
-    ].find((term) => term.term.toLowerCase() === lower) || null;
-  }, [activeChunk?.keyTerms, content.keyTerms, scholar.activeTerm]);
-
   const displayedOriginal = useMemo(() => {
     const text = limitTextByDepth(activeChunk.originalText, scholar.readingDepth);
     return highlightText(text, sourceTerms, scholar.activeTerm, scholar.selectTerm);
@@ -152,24 +143,6 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
         return;
       }
 
-      if (key === 's') {
-        event.preventDefault();
-        scholar.setViewMode('split');
-        return;
-      }
-
-      if (key === 'f') {
-        event.preventDefault();
-        scholar.setViewMode('focus');
-        return;
-      }
-
-      if (key === 'q') {
-        event.preventDefault();
-        scholar.toggleView();
-        return;
-      }
-
       if (key === '[') {
         event.preventDefault();
         scholar.setReadingDepth(scholar.readingDepth - 0.1);
@@ -211,38 +184,7 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex rounded-full border border-border/30 bg-card p-1.5 shadow-sm">
-            <button
-              type="button"
-              onClick={() => scholar.setViewMode('split')}
-              className={[
-                'rounded-full px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.3em] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                scholar.viewMode === 'split' ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground',
-              ].join(' ')}
-            >
-              Split View
-            </button>
-            <button
-              type="button"
-              onClick={() => scholar.setViewMode('focus')}
-              className={[
-                'rounded-full px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.3em] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                scholar.viewMode === 'focus' ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground',
-              ].join(' ')}
-            >
-              Focus View
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={scholar.toggleView}
-            className="rounded-full border border-border/25 bg-card px-4 py-2.5 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground transition-all hover:text-foreground hover:border-border/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            Toggle layout
-          </button>
-        </div>
+        <div className="flex flex-wrap items-center gap-3" />
       </div>
 
       <div className="rounded-[1.75rem] border border-border/25 bg-card/70 p-4 md:p-5 shadow-sm">
@@ -295,10 +237,7 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
         </div>
       </div>
 
-      <div className={[
-        'grid min-h-0 gap-6',
-        scholar.viewMode === 'focus' ? 'grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px]' : 'grid-cols-1 xl:grid-cols-2',
-      ].join(' ')}>
+      <div className="grid min-h-0 gap-6 grid-cols-1 xl:grid-cols-2">
         <section className="flex min-h-0 flex-col rounded-[2rem] border border-border/25 bg-secondary/[0.05] p-5 md:p-6 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -359,57 +298,7 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
           </div>
         </section>
 
-        {scholar.viewMode === 'focus' && (
-          <aside className="flex min-h-0 flex-col rounded-[2rem] border border-border/25 bg-card/80 p-5 md:p-6 shadow-sm xl:col-start-2">
-            <p className="text-[10px] font-black uppercase tracking-[0.45em] text-muted-foreground/45">Term Focus</p>
-            <h4 className="mt-3 text-2xl font-black tracking-tightest">Tap a difficult term</h4>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Scholar highlights technical phrases and difficult words so you can inspect them without leaving the current chunk.
-            </p>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              {sourceTerms.length > 0 ? sourceTerms.map((term) => {
-                const isActive = scholar.activeTerm?.toLowerCase() === term.toLowerCase();
-                return (
-                  <button
-                    key={term}
-                    type="button"
-                    onClick={() => scholar.selectTerm(term)}
-                    className={[
-                      'rounded-full border px-3 py-2 text-[10px] font-black uppercase tracking-[0.3em] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                      isActive
-                        ? 'border-primary/20 bg-primary/10 text-primary'
-                        : 'border-border/25 bg-background text-muted-foreground hover:text-foreground',
-                    ].join(' ')}
-                  >
-                    {term}
-                  </button>
-                );
-              }) : (
-                <p className="text-sm text-muted-foreground">No highlighted terms were returned for this chunk.</p>
-              )}
-            </div>
-
-            <div className="mt-6 rounded-[1.5rem] border border-border/20 bg-background p-4 md:p-5">
-              <p className="text-[10px] font-black uppercase tracking-[0.35em] text-muted-foreground/45">Selected term</p>
-              {scholar.activeTerm ? (
-                <div className="mt-3 space-y-3">
-                  <h5 className="text-xl font-black tracking-tightest">{scholar.activeTerm}</h5>
-                  <p className="text-sm leading-relaxed text-foreground/85">
-                    {activeTermMeta?.definition || 'No definition was provided for this term.'}
-                  </p>
-                  <p className="text-xs font-semibold leading-relaxed text-muted-foreground">
-                    {activeTermMeta?.examRelevance || 'No exam relevance note was provided.'}
-                  </p>
-                </div>
-              ) : (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Click a highlighted word in the reading pane or select a term from the list.
-                </p>
-              )}
-            </div>
-          </aside>
-        )}
+        
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -459,7 +348,7 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
       <div className="rounded-[1.5rem] border border-border/20 bg-card/60 px-5 py-4 shadow-sm">
         <p className="text-[10px] font-black uppercase tracking-[0.35em] text-muted-foreground/45">Keyboard</p>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Left / A: previous chunk · Right / D: next chunk · S: split view · F: focus view · Q: toggle layout · [ / ]: reading depth · 1-4: select a key term · Escape: clear term
+          Left / A: previous chunk · Right / D: next chunk · [ / ]: reading depth · 1-4: select a key term · Escape: clear term
         </p>
       </div>
     </div>

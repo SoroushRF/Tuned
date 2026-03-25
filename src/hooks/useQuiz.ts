@@ -10,7 +10,6 @@ import { QuizQuestion, RescueCard } from '@/types';
 export const useQuiz = (questions: QuizQuestion[]) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
-  const [failedQuestions, setFailedQuestions] = useState<string[]>([]);
   const [activeRescue, setActiveRescue] = useState<RescueCard | null>(null);
   const [isFinished, setIsFinished] = useState(false);
 
@@ -27,7 +26,6 @@ export const useQuiz = (questions: QuizQuestion[]) => {
         setIsFinished(true);
       }
     } else {
-      setFailedQuestions(prev => [...prev, currentQuestion.id]);
       // Trigger Rescue Logic (Mocking for now, could call API)
       setActiveRescue({
         questionId: currentQuestion.id,

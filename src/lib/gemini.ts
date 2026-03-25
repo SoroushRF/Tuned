@@ -15,20 +15,31 @@ export async function transformContent(text: string, vector: NeuroPrintVector): 
 export async function transformContentWithPdf(
   text: string,
   vector: NeuroPrintVector,
-  pdfFiles: File[] = []
+  pdfFiles: File[] = [],
+  imageFiles: File[] = []
 ): Promise<ProcessedOutput> {
   try {
     const formData = new FormData();
     formData.append('text', text);
     formData.append('vector', JSON.stringify(vector));
     pdfFiles.forEach((file) => formData.append('pdfs', file, file.name));
+    imageFiles.forEach((file) => formData.append('images', file, file.name));
 
     const res = await fetch('/api/gemini/process', {
       method: 'POST',
       body: formData
     });
 
-    if (!res.ok) throw new Error("Failed to process content via backend.");
+    if (!res.ok) {
+      let serverMessage: string | undefined;
+      try {
+        const err = (await res.json()) as { error?: string };
+        serverMessage = err?.error;
+      } catch {
+        // ignore JSON parse failures
+      }
+      throw new Error(serverMessage || "Failed to process content via backend.");
+    }
 
     const data = await res.json();
     
@@ -39,6 +50,7 @@ export async function transformContentWithPdf(
     };
   } catch (error) {
     console.error("Nuro Translation Error:", error);
-    throw new Error("Neural synthesis failed. Possible network or processing timeout.");
+    const message = error instanceof Error ? error.message : "Neural synthesis failed. Possible network or processing timeout.";
+    throw new Error(message);
   }
 }

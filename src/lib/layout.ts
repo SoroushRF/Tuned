@@ -42,5 +42,7 @@ export const getDominantMode = (neuroPrint: NeuroPrintVector) => {
   if (primary.id === 'audio' && primary.val >= 0.55 && gap >= 0.1) return 'audio';
   if (primary.id === 'scholar' && primary.val >= 0.55 && gap >= 0.1) return 'scholar';
 
-  return 'balanced';
+  // If no mode is clearly dominant, fall back to the highest-scoring mode
+  // (so the UI always renders a panel instead of returning `null`).
+  return primary.id;
 };

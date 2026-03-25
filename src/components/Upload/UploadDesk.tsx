@@ -9,14 +9,13 @@ import * as mammoth from 'mammoth';
 interface UploadItem {
   id: string;
   name: string;
-  type: 'pdf' | 'docx' | 'image' | 'audio' | 'text' | 'link';
+  type: 'pdf' | 'docx' | 'image' | 'audio' | 'text';
   size: number; // bytes
   content: string; // extracted text or base64 data
   file?: File; // raw file for direct Gemini upload
   status: 'pending' | 'processing' | 'success' | 'error';
 }
 
-const IconLink = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>;
 const IconFile = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>;
 const IconX = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>;
 const IconZap = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
@@ -25,7 +24,6 @@ export default function UploadDesk() {
   const { state, dispatch } = useAppContext();
   const router = useRouter();
   const [items, setItems] = useState<UploadItem[]>([]);
-  const [urlInput, setUrlInput] = useState('');
   const [textInput, setTextInput] = useState('');
   const [isProcessingAll, setIsProcessingAll] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -40,7 +38,6 @@ export default function UploadDesk() {
     image: { size: 10 * 1024 * 1024, count: 5 },
     audio: { size: 25 * 1024 * 1024, count: 2 },
     text: { size: 50000, count: 10 }, // character limit
-    link: { size: 0, count: 5 } // link count
   };
 
   const currentUsageBytes = useMemo(() => items.reduce((acc, i) => acc + i.size, 0), [items]);
@@ -76,7 +73,7 @@ export default function UploadDesk() {
       type,
       size: file.size,
       content: '', // Extract after
-      file: type === 'pdf' ? file : undefined,
+      file: (type === 'pdf' || type === 'image' || type === 'audio') ? file : undefined,
       status: 'pending'
     };
 
@@ -103,34 +100,6 @@ export default function UploadDesk() {
     } catch (err) {
       console.error("Extraction Failed:", err);
       updateItemContent(newItem.id, '', 'error');
-    }
-  };
-
-  const addLink = async () => {
-    if (!urlInput) return;
-    const existingCount = items.filter(i => i.type === 'link').length;
-    if (existingCount >= TYPE_LIMITS.link.count) {
-      setErrorMessage("Max 5 links per session.");
-      return;
-    }
-
-    const id = Math.random().toString(36).substring(7);
-    const newItem: UploadItem = { id, name: urlInput, type: 'link', size: 0, content: '', status: 'processing' };
-    setItems(prev => [...prev, newItem]);
-    setUrlInput('');
-
-    try {
-      const res = await fetch('/api/fetch-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: urlInput })
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      updateItemContent(id, data.text, 'success');
-    } catch (err: any) {
-      updateItemContent(id, '', 'error');
-      setErrorMessage(err.message || "Failed to fetch link.");
     }
   };
 
@@ -169,7 +138,7 @@ export default function UploadDesk() {
 
     // Roll up all success content
     const combinedText = items
-      .filter(i => i.status === 'success' && (i.type === 'text' || i.type === 'link' || i.type === 'docx'))
+      .filter(i => i.status === 'success' && (i.type === 'text' || i.type === 'docx'))
       .map(i => `[Source: ${i.name}]\n${i.content}`)
       .join('\n\n');
 
@@ -177,12 +146,29 @@ export default function UploadDesk() {
       .filter(i => i.status === 'success' && i.type === 'pdf' && i.file)
       .map(i => i.file as File);
 
+    const imageFiles = items
+      .filter(i => i.status === 'success' && i.type === 'image' && i.file)
+      .map(i => i.file as File);
+
+    const audioFiles = items
+      .filter(i => i.status === 'success' && i.type === 'audio' && i.file)
+      .map(i => i.file as File);
+
+    // Audio support is not wired into the Gemini JSON pipeline yet.
+    // Reject early with a clear message instead of silently doing nothing.
+    if (audioFiles.length > 0) {
+      setErrorMessage("Audio uploads are not supported in this version. Please provide a text transcript instead.");
+      setIsProcessingAll(false);
+      return;
+    }
+
     try {
-      const result = await transformContentWithPdf(combinedText, state.neuroPrint, pdfFiles);
+      const result = await transformContentWithPdf(combinedText, state.neuroPrint, pdfFiles, imageFiles);
       dispatch({ type: 'SET_SESSION', payload: result });
       router.push('/study');
-    } catch (err) {
-      setErrorMessage("Failed to synthesize material. Possible API limit.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to synthesize material. Possible API limit.";
+      setErrorMessage(message);
       setIsProcessingAll(false);
     }
   };
@@ -234,20 +220,6 @@ export default function UploadDesk() {
 
             {/* Quick Inputs */}
             <div className="space-y-6">
-               <div className="flex gap-2 p-1.5 bg-secondary/20 rounded-2xl border border-border/20 shadow-inner group">
-                  <input 
-                    type="text" 
-                    placeholder="External link (https://...)" 
-                    className="flex-1 bg-transparent px-6 py-4 outline-none text-foreground font-semibold placeholder:text-muted-foreground/20 text-sm"
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && addLink()}
-                  />
-                  <button onClick={addLink} className="w-12 h-12 rounded-xl bg-foreground text-background hover:bg-primary transition-all flex items-center justify-center">
-                     <IconLink />
-                  </button>
-               </div>
-               
                <div className="p-6 rounded-[2rem] bg-secondary/10 border border-border/20 flex flex-col gap-4 shadow-sm">
                   <textarea 
                     placeholder="Paste rapid notes or deep context context here..." 
@@ -289,7 +261,7 @@ export default function UploadDesk() {
                               item.status === 'processing' ? 'animate-pulse bg-primary/20 text-primary' :
                               item.status === 'error' ? 'bg-red-500/20 text-red-500' : 'bg-card text-foreground/60'
                            }`}>
-                              {item.type === 'pdf' ? '📄' : item.type === 'docx' ? '📘' : item.type === 'image' ? '🖼️' : item.type === 'audio' ? '🔊' : item.type === 'link' ? '🔗' : '📝'}
+                              {item.type === 'pdf' ? '📄' : item.type === 'docx' ? '📘' : item.type === 'image' ? '🖼️' : item.type === 'audio' ? '🔊' : '📝'}
                            </div>
                            <div className="space-y-0.5">
                               <p className="text-xs font-bold tracking-tight max-w-[160px] truncate">{item.name}</p>
@@ -332,13 +304,22 @@ export default function UploadDesk() {
               disabled={isProcessingAll || items.filter(i => i.status === 'success').length === 0}
               onClick={processAll}
               className={`group w-full py-5 rounded-2xl font-bold text-[10px] tracking-[0.4em] flex items-center justify-center gap-6 transition-all relative overflow-hidden ${
-                isProcessingAll ? 'bg-secondary text-muted-foreground cursor-not-allowed' : 'bg-foreground text-background hover:scale-[1.02] shadow-xl uppercase'
+                isProcessingAll
+                  ? 'bg-primary/10 text-primary border border-primary/15 cursor-not-allowed animate-pulse'
+                  : 'bg-foreground text-background hover:scale-[1.02] shadow-xl uppercase'
               }`}
             >
                {isProcessingAll ? (
                  <>
-                   <div className="w-5 h-5 border-3 border-muted-foreground border-t-transparent rounded-full animate-spin" />
-                   Synthesizing Matrix
+                   <div className="w-5 h-5 border-3 border-primary/35 border-t-primary rounded-full animate-spin" />
+                   <span className="inline-flex items-center gap-2 tracking-[0.2em]">
+                     Synthesizing Matrix
+                     <span className="inline-flex items-center gap-0.5" aria-hidden>
+                       <span className="text-primary/80 animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
+                       <span className="text-primary/80 animate-bounce" style={{ animationDelay: '150ms' }}>.</span>
+                       <span className="text-primary/80 animate-bounce" style={{ animationDelay: '300ms' }}>.</span>
+                     </span>
+                   </span>
                  </>
                ) : (
                  <>

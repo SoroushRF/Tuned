@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { NeuroPrintDeltas, NeuroPrintVector } from '@/types';
 import { SURVEY_QUESTIONS } from '@/lib/neuroprint/weights';
 import { calculateVector } from '@/lib/neuroprint/engine';
@@ -79,29 +79,30 @@ export default function OnboardingFlow({ onBeginCalibration, onComplete }: Onboa
     });
   };
 
-  const handleNext = async () => {
+  const handleNext = useCallback(async () => {
     if (currentStep < SURVEY_QUESTIONS.length - 1) {
-      setCurrentStep(prev => prev + 1);
-    } else {
-      setIsCalibrating(true);
-      onBeginCalibration();
-      try {
-        const res = await fetch('/api/gemini/analyze-onboarding', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ history, questions: SURVEY_QUESTIONS })
-        });
-        const vector = await res.json();
-        onComplete(vector);
-      } catch (error) {
-        console.error("Calibration error:", error);
-        // Fallback to static if API fails
-        onComplete(calculateVector(totalDeltas));
-      } finally {
-        setIsCalibrating(false);
-      }
+      setCurrentStep((prev) => prev + 1);
+      return;
     }
-  };
+
+    setIsCalibrating(true);
+    onBeginCalibration();
+    try {
+      const res = await fetch('/api/gemini/analyze-onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ history, questions: SURVEY_QUESTIONS }),
+      });
+      const vector = await res.json();
+      onComplete(vector);
+    } catch (error) {
+      console.error("Calibration error:", error);
+      // Fallback to static if API fails
+      onComplete(calculateVector(totalDeltas));
+    } finally {
+      setIsCalibrating(false);
+    }
+  }, [currentStep, history, onBeginCalibration, onComplete, totalDeltas]);
 
   const handleBack = () => {
     if (currentStep > 0) {
@@ -157,7 +158,7 @@ export default function OnboardingFlow({ onBeginCalibration, onComplete }: Onboa
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentStep, history]);
+  }, [currentStep, history, handleNext]);
 
   const isNextEnabled = (history[currentStep]?.selectedIndices?.length || 0) > 0 || (history[currentStep]?.freeText?.trim()?.length || 0) > 0;
   const isLastStep = currentStep === SURVEY_QUESTIONS.length - 1;

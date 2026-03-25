@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { PodcastScript } from '@/types';
 import { usePodcast } from '@/hooks/usePodcast';
 
@@ -9,6 +9,8 @@ interface PodcastPanelProps {
 }
 
 export default function PodcastPanel({ script }: PodcastPanelProps) {
+  const [showTranscript, setShowTranscript] = useState(true);
+
   const {
     status,
     currentSegmentIndex,
@@ -69,6 +71,13 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
           <p className="text-sm text-muted-foreground/70 leading-relaxed">
             Gemini turns the transcript into a real two-voice audio segment.
           </p>
+          <button
+            type="button"
+            onClick={() => setShowTranscript((v) => !v)}
+            className="w-full rounded-2xl border border-border/40 bg-card px-4 py-3 text-xs font-bold uppercase tracking-[0.25em] text-foreground/80 hover:bg-secondary/30 active:translate-y-[1px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {showTranscript ? 'Hide Transcript' : 'Show Transcript'}
+          </button>
           {isShortened && (
             <div className="inline-flex rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-amber-700 dark:text-amber-300">
               Shortened for quick playback
@@ -183,7 +192,7 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
         </div>
       </aside>
 
-      <section className="flex-1 p-14 overflow-y-auto custom-scrollbar bg-card/5">
+      <section className={`flex-1 p-14 overflow-y-auto custom-scrollbar bg-card/5 ${showTranscript ? '' : 'hidden'}`}>
         <div className="max-w-2xl mx-auto space-y-12 py-10">
           {script.segments.map((segment, segmentIndex) => {
             const segmentSentences = sentenceTimeline.filter(

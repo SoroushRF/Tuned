@@ -12,6 +12,8 @@ interface ProgressDotsProps {
 
 export default function ProgressDots({ currentStep, totalSteps, onStepClick, answeredSteps }: ProgressDotsProps) {
   const steps = Array.from({ length: totalSteps }, (_, i) => i);
+  const lastCompletedStep = steps.reduce((last, step) => (answeredSteps[step] ? step : last), -1);
+  const denom = Math.max(totalSteps - 1, 1);
 
   return (
     <div className="w-full flex flex-col items-center gap-6 animate-in fade-in duration-500">
@@ -22,7 +24,7 @@ export default function ProgressDots({ currentStep, totalSteps, onStepClick, ans
         <div className="absolute inset-x-0 h-[1.5px] bg-secondary/20 top-1/2 -translate-y-1/2 z-0" />
         <div 
           className="absolute h-[1.5px] bg-primary top-1/2 -translate-y-1/2 z-0 transition-all duration-500 ease-in-out origin-left"
-          style={{ width: `${(currentStep / (totalSteps - 1)) * 100}%` }}
+          style={{ width: `${(Math.max(lastCompletedStep, 0) / denom) * 100}%` }}
         />
 
         {steps.map((step) => {

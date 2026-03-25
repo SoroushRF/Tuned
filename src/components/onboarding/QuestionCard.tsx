@@ -4,7 +4,6 @@ import React from 'react';
 import { SurveyQuestion } from '@/types';
 import OptionButton from './OptionButton';
 import FreeTextFallback from './FreeTextFallback';
-import { cn } from '@/lib/utils';
 
 interface QuestionCardProps {
   question: SurveyQuestion;
@@ -47,7 +46,6 @@ export default function QuestionCard({
             option={option}
             isSelected={selectedOptionIndices.includes(i)}
             onClick={() => onSelectOption(i)}
-            isMultiSelect={question.isMultiSelect}
           />
         ))}
       </div>

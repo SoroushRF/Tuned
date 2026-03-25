@@ -1,8 +1,7 @@
-const TRUTHY = new Set(["1", "true", "yes", "on"]);
-
 export function isGeminiDebugEnabled() {
   const flag = (process.env.GEMINI_DEBUG || process.env.NEXT_PUBLIC_GEMINI_DEBUG || "").toLowerCase();
-  return TRUTHY.has(flag);
+  // Only treat explicit "true" (or "1") as enabled to avoid accidental verbose logs.
+  return flag === "true" || flag === "1";
 }
 
 export function createGeminiDebugId(routeName: string) {

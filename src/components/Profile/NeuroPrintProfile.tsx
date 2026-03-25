@@ -13,7 +13,7 @@ const IconClose = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="no
 import { useAppContext } from '@/store/context';
 import { useMemo } from 'react';
 
-export default function NeuroPrintProfile({ vector: initialVector, onClose }: NeuroPrintProfileProps) {
+export default function NeuroPrintProfile({ onClose }: NeuroPrintProfileProps) {
   const { state, dispatch } = useAppContext();
   const vector = state.neuroPrint;
 
@@ -103,9 +103,9 @@ export default function NeuroPrintProfile({ vector: initialVector, onClose }: Ne
             <h3 className="text-[10px] font-black tracking-[0.4em] text-muted-foreground/20 uppercase">Cognitive Dimensions</h3>
             <div className="grid grid-cols-1 gap-10">
               {[
-                { label: 'Auditory Path', id: 'audio', value: vector.audio, color: 'bg-blue-500', desc: 'Efficiency in speech-to-logic conversion.' },
-                { label: 'Micro-Focus', id: 'adhd', value: vector.adhd, color: 'bg-indigo-500', desc: 'Resilience in high-velocity contexts.' },
-                { label: 'Context Depth', id: 'scholar', value: vector.scholar, color: 'bg-violet-500', desc: 'Ability to simplify abstract structures.' },
+                { label: 'Podcast Mode', id: 'audio', value: vector.audio, color: 'bg-blue-500', desc: 'Learning that prefers audio + podcast-style recap.' },
+                { label: 'Sprint Mode', id: 'adhd', value: vector.adhd, color: 'bg-indigo-500', desc: 'Fast, punchy, short-attention sprint card experience.' },
+                { label: 'Scholar Mode', id: 'scholar', value: vector.scholar, color: 'bg-violet-500', desc: 'Structured academic depth with simplified models.' },
               ].map((item, i) => (
                 <div key={i} className="group">
                   <div className="flex justify-between items-end mb-4">

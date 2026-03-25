@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { SurveyQuestion } from "@/types";
 import {
   createGeminiDebugId,
   logGeminiError,
@@ -15,12 +16,24 @@ export async function POST(req: NextRequest) {
   const requestId = createGeminiDebugId("onboarding");
   const startedAt = Date.now();
   try {
-    const { history, questions } = await req.json();
+    type SurveyStepState = {
+      selectedIndices: number[];
+      freeText?: string;
+    };
+
+    type OnboardingRequestBody = {
+      history: Record<string, SurveyStepState>;
+      questions: SurveyQuestion[];
+    };
+
+    const { history, questions } = (await req.json()) as OnboardingRequestBody;
 
     // Build context from the survey history
     let context = "USER SURVEY RESPONSES:\n";
-    Object.entries(history).forEach(([stepIdx, state]: [string, any]) => {
-      const q = questions[parseInt(stepIdx)];
+    Object.entries(history).forEach(([stepIdx, state]) => {
+      const questionIndex = Number(stepIdx);
+      const q = questions[questionIndex];
+      if (!q) return;
       context += `Q: ${q.text}\n`;
       if (state.selectedIndices.length > 0) {
         context += `A: ${state.selectedIndices.map((idx: number) => q.options[idx].label).join(", ")}\n`;

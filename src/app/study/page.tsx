@@ -24,8 +24,8 @@ export default function StudyPage() {
       <header className="sticky top-0 z-50 w-full glass-silk px-10 py-4 flex items-center justify-between shadow-premium">
         <div className="flex items-center gap-12">
           <Link href="/" className="flex items-center gap-3 transition-shadow hover:shadow-md active:translate-y-[1px] group">
-            <div className="w-9 h-9 rounded-xl bg-foreground text-background flex items-center justify-center text-lg shadow-premium">N</div>
-            <span className="text-xl font-bold tracking-tighter">Nuro</span>
+            <div className="w-9 h-9 rounded-xl bg-foreground text-background flex items-center justify-center text-lg shadow-premium">T</div>
+            <span className="text-xl font-bold tracking-tighter">Tuned</span>
           </Link>
         </div>
 
@@ -48,7 +48,7 @@ export default function StudyPage() {
             <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-md z-[60] animate-in fade-in duration-500">
               <div className="flex flex-col items-center gap-10">
                 <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-white text-xl shadow-premium">
-                  N
+                  T
                 </div>
                 <div className="flex flex-col items-center gap-2">
                   <p className="text-sm font-bold tracking-tight text-primary">Adapting Surface...</p>

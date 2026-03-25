@@ -1,5 +1,5 @@
 import { createPartFromUri, GoogleGenAI } from "@google/genai";
-import { NeuroPrintVector } from "@/types";
+import { NeuroPrintVector, SprintCard, ScholarContent, PodcastScript } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 import {
   createGeminiDebugId,
@@ -17,6 +17,13 @@ const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const PODCAST_MAX_SEGMENTS = 4;
 const PODCAST_MAX_WORDS = 160;
+
+const IMAGE_MAX_COUNT = 5;
+const IMAGE_MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+
+const MAX_UPLOAD_POLL_MS = 180_000;
+const POLL_INTERVAL_MS = 1_000;
+const MAX_GENERATE_CONTENT_MS = 180_000;
 
 const PODCAST_PROMPT_EXTENSION = `
   [PODCAST EXPERT MODE]: The user has a high Auditory preference. 
@@ -48,6 +55,21 @@ function trimPodcastText(text: string, maxWords: number) {
     text: `${words.slice(0, maxWords).join(' ')}...`,
     wasTrimmed: true,
   };
+}
+
+function getFileExtension(fileName: string) {
+  const ext = fileName.split(".").pop();
+  return (ext || "").toLowerCase();
+}
+
+function guessImageMimeType(file: File): string | null {
+  if (file.type && file.type.startsWith("image/")) return file.type;
+  const ext = getFileExtension(file.name);
+  if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+  if (ext === "png") return "image/png";
+  if (ext === "webp") return "image/webp";
+  if (ext === "gif") return "image/gif";
+  return null;
 }
 
 function shortenPodcastSegments(script: { segments: { speaker: 'A' | 'B'; text: string }[] }) {
@@ -99,6 +121,8 @@ export async function POST(req: NextRequest) {
     let text = "";
     let vector: NeuroPrintVector | null = null;
     const pdfFiles: File[] = [];
+    const imageFiles: File[] = [];
+    const audioFiles: File[] = [];
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
@@ -110,13 +134,26 @@ export async function POST(req: NextRequest) {
           pdfFiles.push(value);
         }
       });
+      formData.getAll("images").forEach((value) => {
+        if (value instanceof File) {
+          imageFiles.push(value);
+        }
+      });
+      formData.getAll("audios").forEach((value) => {
+        if (value instanceof File) {
+          audioFiles.push(value);
+        }
+      });
     } else {
       const body = (await req.json()) as { text: string; vector: NeuroPrintVector };
       text = body.text;
       vector = body.vector;
     }
 
-    if ((!text && pdfFiles.length === 0) || !vector) {
+    if (
+      (!text && pdfFiles.length === 0 && imageFiles.length === 0) ||
+      !vector
+    ) {
       console.error("Nuro Error: Input context or profile vector is missing.");
       return NextResponse.json({ error: "Context or Vector missing" }, { status: 400 });
     }
@@ -124,6 +161,37 @@ export async function POST(req: NextRequest) {
     if (!API_KEY) {
       console.error("Nuro Error: GEMINI_API_KEY is missing from environment variables.");
       return NextResponse.json({ error: "API Key not configured." }, { status: 500 });
+    }
+
+    // Reject audio for now (clear error instead of silently ignoring it).
+    if (audioFiles.length > 0) {
+      return NextResponse.json(
+        { error: "Audio uploads are not supported yet. Please provide a text transcript instead." },
+        { status: 400 }
+      );
+    }
+
+    if (imageFiles.length > IMAGE_MAX_COUNT) {
+      return NextResponse.json(
+        { error: `Too many images. Max ${IMAGE_MAX_COUNT} images allowed per request.` },
+        { status: 400 }
+      );
+    }
+
+    for (const imageFile of imageFiles) {
+      if (imageFile.size > IMAGE_MAX_SIZE_BYTES) {
+        return NextResponse.json(
+          { error: `Image ${imageFile.name} is too large. Max ${IMAGE_MAX_SIZE_BYTES / (1024 * 1024)}MB.` },
+          { status: 400 }
+        );
+      }
+      const guessedMime = guessImageMimeType(imageFile);
+      if (!guessedMime) {
+        return NextResponse.json(
+          { error: `Unsupported image type for ${imageFile.name}. Allowed: jpeg, png, webp, gif.` },
+          { status: 400 }
+        );
+      }
     }
 
     const scholarBundle = buildScholarChunkManifest(text, pdfFiles.map((file) => file.name));
@@ -134,6 +202,8 @@ export async function POST(req: NextRequest) {
       vector,
       pdfCount: pdfFiles.length,
       pdfNames: pdfFiles.map((file) => file.name),
+      imageCount: imageFiles.length,
+      imageNames: imageFiles.map((file) => file.name),
       scholarSourceCount: scholarBundle.sourceCount,
       scholarChunkCount: scholarBundle.chunkCount,
       model: "gemini-2.5-flash",
@@ -208,8 +278,12 @@ export async function POST(req: NextRequest) {
       });
 
       let fileRecord = uploaded;
+      const pollDeadline = Date.now() + MAX_UPLOAD_POLL_MS;
       while (fileRecord.state !== "ACTIVE" && fileRecord.state !== "FAILED") {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (Date.now() > pollDeadline) {
+          throw new Error("Gemini file processing timed out");
+        }
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
         if (!fileRecord.name) {
           throw new Error(`Gemini did not return a file name for ${pdfFile.name}`);
         }
@@ -232,12 +306,51 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const uploadedImageParts = [];
+    for (const imageFile of imageFiles) {
+      const guessedMime = guessImageMimeType(imageFile);
+      // Validation above guarantees guessedMime is not null.
+      const uploaded = await ai.files.upload({
+        file: imageFile,
+        config: {
+          displayName: imageFile.name,
+          mimeType: guessedMime ?? imageFile.type,
+        },
+      });
+
+      let fileRecord = uploaded;
+      const pollDeadline = Date.now() + MAX_UPLOAD_POLL_MS;
+      while (fileRecord.state !== "ACTIVE" && fileRecord.state !== "FAILED") {
+        if (Date.now() > pollDeadline) {
+          throw new Error("Gemini file processing timed out");
+        }
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+        if (!fileRecord.name) {
+          throw new Error(`Gemini did not return a file name for ${imageFile.name}`);
+        }
+        fileRecord = await ai.files.get({ name: fileRecord.name });
+      }
+
+      if (fileRecord.state === "FAILED") {
+        throw new Error(`Failed to upload Image: ${imageFile.name}`);
+      }
+
+      if (!fileRecord.uri) {
+        throw new Error(`Gemini did not return a URI for ${imageFile.name}`);
+      }
+
+      const uri = fileRecord.uri;
+      const mimeType = fileRecord.mimeType ?? guessedMime ?? imageFile.type;
+      uploadedImageParts.push(createPartFromUri(uri, mimeType || "image/png"));
+    }
+
     // 3. System Synthesis
-    const response = await ai.models.generateContent({
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const responsePromise = ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{
         role: "user",
-        parts: [{ text: finalPrompt }, ...uploadedPdfParts],
+        parts: [{ text: finalPrompt }, ...uploadedPdfParts, ...uploadedImageParts],
       }],
       config: {
         systemInstruction: { parts: [{ text: systemInstructionContent }] },
@@ -245,14 +358,30 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error("Gemini generateContent timed out")), MAX_GENERATE_CONTENT_MS);
+    });
+
+    let response;
+    try {
+      response = await Promise.race([responsePromise, timeoutPromise]);
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
+
     const responseText = response.text || "";
     logGeminiResponse("process", requestId, Date.now() - startedAt, {
       responseLength: responseText.length,
       responsePreview: summarizeText(responseText, 500),
     });
-    console.log("------------------------ NURO RESPONSE RAW ------------------------");
-    console.log(responseText);
-    console.log("-------------------------------------------------------------------");
+    // Never print full model output in production logs.
+    if (isGeminiDebugEnabled()) {
+      console.log("------------------------ NURO RESPONSE RAW ------------------------");
+      console.log(responseText);
+      console.log("-------------------------------------------------------------------");
+    } else {
+      console.log(`[gemini:process] ${requestId} responseLength=${responseText.length}`);
+    }
     
     // Robust JSON Finder
     const start = responseText.indexOf('{');
@@ -264,34 +393,130 @@ export async function POST(req: NextRequest) {
     }
     
     const cleanJson = responseText.substring(start, end + 1).trim();
-    const parsed = JSON.parse(cleanJson);
-    if (parsed?.podcast?.segments) {
-      const shortenedPodcast = shortenPodcastSegments(parsed.podcast);
-      parsed.podcast = {
-        ...parsed.podcast,
-        ...shortenedPodcast,
-      };
-      if (isGeminiDebugEnabled()) {
-        console.log(`[gemini:process] ${requestId} podcast details`, {
-          podcastSegmentCount: shortenedPodcast.segments.length,
-          podcastWasShortened: shortenedPodcast.isShortened,
-          podcastTargetDurationSeconds: shortenedPodcast.targetDurationSeconds ?? null,
-        });
-      }
-    }
-    if (parsed?.scholar) {
-      parsed.scholar = {
-        highlightedTerms: [],
-        sourceLabels: [],
-        chunks: [],
-        ...parsed.scholar,
-      };
-    }
-    return NextResponse.json(parsed);
+    const parsed = JSON.parse(cleanJson) as {
+      sprintCards?: SprintCard[];
+      scholar?: Partial<ScholarContent>;
+      podcast?: PodcastScript;
+      conceptMapNodes?: { id: string; label: string }[];
+      conceptMapEdges?: { source: string; target: string }[];
+    };
 
-  } catch (error: any) {
+    const fallbackKeyTerm = {
+      term: "Key Concept",
+      definition: "A central idea distilled from the uploaded material.",
+      examRelevance: "Helps you connect the idea to recall and application.",
+    };
+
+    const fallbackSprintCards: SprintCard[] = [
+      {
+        id: "fallback-sprint-1",
+        title: "Focus Block 1",
+        bullets: ["Extract the core idea", "Connect it to the material", "Answer the clue"],
+        challenge: "What is the single core idea you should remember?",
+        diagramPrompt: "A simple diagram with one center node and three supporting bubbles.",
+        status: "pending",
+        rescue: {
+          reframeText: "Look for one repeated theme and one key relationship in the material.",
+          hint: "Try summarizing the material in a single sentence.",
+          visualAid: "A one-sentence summary box linked to the theme.",
+        },
+      },
+      {
+        id: "fallback-sprint-2",
+        title: "Focus Block 2",
+        bullets: ["Name key parts", "Explain the link", "Stay concise"],
+        challenge: "Which piece connects the rest of the information together?",
+        diagramPrompt: "A concept map with two nodes connected by a labeled edge.",
+        status: "pending",
+      },
+      {
+        id: "fallback-sprint-3",
+        title: "Focus Block 3",
+        bullets: ["Practice recall", "Test with a question", "Adjust based on confusion"],
+        challenge: "What question would you ask to test this idea?",
+        diagramPrompt: "A question icon connected to a checklist.",
+        status: "pending",
+      },
+    ];
+
+    const fallbackPodcast: PodcastScript = {
+      segments: [
+        { speaker: "A", text: "Welcome. Let’s turn your material into a quick study recap." },
+        { speaker: "B", text: "First, we’ll extract the core idea and key relationships." },
+        { speaker: "A", text: "Then we’ll summarize into clear, actionable learning prompts." },
+      ],
+    };
+
+    const fallbackScholar: ScholarContent = {
+      originalText: text || "Uploaded material.",
+      simplifiedText: summarizeText(text || "", 900),
+      keyTerms: [fallbackKeyTerm],
+      highlightedTerms: [fallbackKeyTerm.term],
+      sourceLabels: ["Uploaded Material"],
+    };
+
+    const sprintCards =
+      Array.isArray(parsed.sprintCards) && parsed.sprintCards.length > 0
+        ? parsed.sprintCards
+        : fallbackSprintCards;
+
+    const podcast =
+      parsed.podcast?.segments && Array.isArray(parsed.podcast.segments) && parsed.podcast.segments.length > 0
+        ? parsed.podcast
+        : fallbackPodcast;
+
+    const shortenedPodcast = shortenPodcastSegments(podcast);
+    const normalizedPodcast: PodcastScript = {
+      ...podcast,
+      ...shortenedPodcast,
+    };
+
+    if (isGeminiDebugEnabled()) {
+      console.log(`[gemini:process] ${requestId} podcast details`, {
+        podcastSegmentCount: normalizedPodcast.segments.length,
+        podcastWasShortened: Boolean(shortenedPodcast.isShortened),
+        podcastTargetDurationSeconds: shortenedPodcast.targetDurationSeconds ?? null,
+      });
+    }
+
+    const scholar = parsed.scholar;
+    const keyTerms =
+      Array.isArray(scholar?.keyTerms) && scholar!.keyTerms.length > 0
+        ? scholar!.keyTerms
+        : fallbackScholar.keyTerms;
+
+    const normalizedScholar: ScholarContent = {
+      ...fallbackScholar,
+      ...(scholar || {}),
+      keyTerms,
+      highlightedTerms: Array.isArray(scholar?.highlightedTerms) ? scholar!.highlightedTerms : fallbackScholar.highlightedTerms,
+      sourceLabels: Array.isArray(scholar?.sourceLabels) ? scholar!.sourceLabels : fallbackScholar.sourceLabels,
+      chunks: Array.isArray(scholar?.chunks) && scholar!.chunks.length > 0 ? scholar!.chunks : undefined,
+    };
+
+    const conceptMapNodes =
+      Array.isArray(parsed.conceptMapNodes) && parsed.conceptMapNodes.length > 0
+        ? parsed.conceptMapNodes
+        : [{ id: "cm-1", label: fallbackKeyTerm.term }];
+
+    const conceptMapEdges =
+      Array.isArray(parsed.conceptMapEdges) && parsed.conceptMapEdges.length > 0
+        ? parsed.conceptMapEdges
+        : [{ source: "cm-1", target: "cm-1" }];
+
+    return NextResponse.json({
+      sprintCards,
+      scholar: normalizedScholar,
+      podcast: normalizedPodcast,
+      conceptMapNodes,
+      conceptMapEdges,
+    });
+
+  } catch (error: unknown) {
     logGeminiError("process", requestId, error);
     console.error("Nuro Synthesis FAILURE (Gemini 3 Debug):", error);
-    return NextResponse.json({ error: error.message || "Neural synthesis failed." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Neural synthesis failed.";
+    const status = message.toLowerCase().includes("timed out") ? 504 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

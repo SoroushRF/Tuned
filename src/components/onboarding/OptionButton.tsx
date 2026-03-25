@@ -8,10 +8,9 @@ interface OptionButtonProps {
   option: SurveyOption;
   isSelected: boolean;
   onClick: () => void;
-  isMultiSelect?: boolean;
 }
 
-export default function OptionButton({ option, isSelected, onClick, isMultiSelect }: OptionButtonProps) {
+export default function OptionButton({ option, isSelected, onClick }: OptionButtonProps) {
   return (
     <button
       onClick={onClick}

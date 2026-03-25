@@ -49,13 +49,11 @@ export const useScholar = (content: ScholarContent, options: UseScholarOptions =
   const chunks = useMemo(() => getChunks(content), [content]);
   const [activeChunkIndex, setActiveChunkIndex] = useState(() => clampIndex(options.initialChunkIndex ?? 0, chunks.length));
   const [activeTerm, setActiveTerm] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ScholarViewMode>('split');
   const [readingDepth, setReadingDepth] = useState(0.72);
   const changeCounts = useRef({ readingDepth: 0 });
   const lastState = useRef({
     chunkIndex: -1,
     activeTerm: '',
-    viewMode: '' as ScholarViewMode | '',
     readingDepth: -1,
   });
 
@@ -69,7 +67,6 @@ export const useScholar = (content: ScholarContent, options: UseScholarOptions =
     const nextState = {
       chunkIndex: activeChunkIndex,
       activeTerm: activeTerm || '',
-      viewMode,
       readingDepth,
     };
 
@@ -77,7 +74,6 @@ export const useScholar = (content: ScholarContent, options: UseScholarOptions =
     const hasChanged =
       previous.chunkIndex !== nextState.chunkIndex ||
       previous.activeTerm !== nextState.activeTerm ||
-      previous.viewMode !== nextState.viewMode ||
       previous.readingDepth !== nextState.readingDepth;
 
     if (hasChanged) {
@@ -85,14 +81,13 @@ export const useScholar = (content: ScholarContent, options: UseScholarOptions =
         activeChunkIndex,
         activeChunkLabel: activeChunk?.pageLabel,
         activeTerm: activeTerm || null,
-        viewMode,
         readingDepth,
         totalChunks: chunks.length,
       });
 
       lastState.current = nextState;
     }
-  }, [activeChunk?.pageLabel, activeChunkIndex, activeTerm, chunks.length, readingDepth, viewMode]);
+  }, [activeChunk?.pageLabel, activeChunkIndex, activeTerm, chunks.length, readingDepth]);
 
   const keyTerms = useMemo(() => {
     return uniqueStrings([
@@ -153,11 +148,6 @@ export const useScholar = (content: ScholarContent, options: UseScholarOptions =
     }
   }, [dispatch, readingDepth, state.neuroPrint]);
 
-  const toggleView = useCallback(() => {
-    logScholarDebug('toggle_view', { from: viewMode });
-    setViewMode((prev) => (prev === 'split' ? 'focus' : 'split'));
-  }, [viewMode]);
-
   return {
     content,
     chunks,
@@ -166,9 +156,6 @@ export const useScholar = (content: ScholarContent, options: UseScholarOptions =
     activeTerm,
     selectedTermMeta,
     selectTerm,
-    viewMode,
-    setViewMode,
-    toggleView,
     readingDepth,
     setReadingDepth: adjustReadingDepth,
     advanceChunk,

@@ -125,10 +125,6 @@ function buildSentenceLabels(script: PodcastScript) {
   return buildSentenceTimeline(script);
 }
 
-function buildSentenceBoundaries(script: PodcastScript) {
-  return buildSentenceTimeline(script).map((entry) => entry.endFraction);
-}
-
 function buildSegmentBoundaries(script: PodcastScript) {
   const timeline = buildSentenceTimeline(script);
   const boundaries = buildSegmentBoundariesFromTimeline(timeline);
@@ -147,16 +143,6 @@ function buildSegmentBoundaries(script: PodcastScript) {
     running += weight;
     return running / total;
   });
-}
-
-function findSegmentIndex(fraction: number, boundaries: number[]) {
-  if (!boundaries.length) return -1;
-  for (let index = 0; index < boundaries.length; index += 1) {
-    if (fraction <= boundaries[index]) {
-      return index;
-    }
-  }
-  return boundaries.length - 1;
 }
 
 async function generatePodcastAudio(script: PodcastScript, signal?: AbortSignal) {
@@ -201,8 +187,7 @@ export const usePodcast = (script?: PodcastScript) => {
   const segmentBoundariesRef = useRef<number[]>([]);
   const sentenceTimelineRef = useRef<PodcastSentence[]>([]);
   const isMountedRef = useRef(true);
-  const scriptKey = useMemo(() => JSON.stringify(script?.segments ?? []), [script]);
-  const sentenceTimeline = useMemo(() => (script ? buildSentenceLabels(script) : []), [scriptKey]);
+  const sentenceTimeline = useMemo(() => (script ? buildSentenceLabels(script) : []), [script]);
 
   const cleanupAudio = useCallback(() => {
     if (audioRef.current) {
@@ -332,13 +317,13 @@ export const usePodcast = (script?: PodcastScript) => {
         audioUrlRef.current = objectUrl;
         audioRef.current = audio;
         setStatus('idle');
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (abortController.signal.aborted || !isMountedRef.current) {
           return;
         }
         console.error('[podcast] audio generation failed', err);
         setStatus('error');
-        setError(err?.message || 'Failed to generate podcast audio.');
+        setError(err instanceof Error ? err.message : 'Failed to generate podcast audio.');
       }
     };
 
@@ -347,7 +332,7 @@ export const usePodcast = (script?: PodcastScript) => {
     return () => {
       abortController.abort();
     };
-  }, [cleanupAudio, script, scriptKey]);
+  }, [cleanupAudio, script, sentenceTimeline]);
 
   const play = useCallback(async () => {
     if (!script || script.segments.length === 0) {
