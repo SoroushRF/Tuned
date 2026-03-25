@@ -23,7 +23,24 @@ export const calculatePanelWidths = (neuroPrint: NeuroPrintVector) => {
 export const getLayoutStrategy = (neuroPrint: NeuroPrintVector) => {
   const max = Math.max(neuroPrint.audio, neuroPrint.adhd, neuroPrint.scholar);
   
-  if (max > 0.8) return 'single'; // One mode takes over
-  if (max > 0.5) return 'split';  // One major, two minor
+  if (max > 0.75) return 'single'; // One mode takes over
+  if (max > 0.55) return 'split';  // One major, two minor
   return 'balanced';              // Equal distribution
+};
+
+export const getDominantMode = (neuroPrint: NeuroPrintVector) => {
+  const scores = [
+    { id: 'audio', val: neuroPrint.audio },
+    { id: 'adhd', val: neuroPrint.adhd },
+    { id: 'scholar', val: neuroPrint.scholar },
+  ].sort((a, b) => b.val - a.val);
+
+  const [primary, secondary] = scores;
+  const gap = primary.val - (secondary?.val ?? 0);
+
+  if (primary.id === 'adhd' && primary.val >= 0.55 && gap >= 0.1) return 'adhd';
+  if (primary.id === 'audio' && primary.val >= 0.55 && gap >= 0.1) return 'audio';
+  if (primary.id === 'scholar' && primary.val >= 0.55 && gap >= 0.1) return 'scholar';
+
+  return 'balanced';
 };

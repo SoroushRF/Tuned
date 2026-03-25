@@ -49,7 +49,12 @@ export const mockSprintCards: SprintCard[] = [
     bullets: ["Easy recall means common", "Vivid stories sway judgment", "Recent events loom large", "Familiarity feels more likely"],
     challenge: "I make rare events seem common because they're loud in your memory.",
     diagramPrompt: "Brain with a spotlight on a single memory",
-    status: "pending"
+    status: "pending",
+    rescue: {
+      reframeText: "Try a simpler pass: this is about what feels easiest to remember, not what is actually most common.",
+      hint: "If it comes to mind fast, it can feel more likely than it really is.",
+      visualAid: "A spotlight aimed at one bright memory while other memories fade."
+    }
   }
 ];
 

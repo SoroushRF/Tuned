@@ -5,6 +5,7 @@ import { NeuroPrintVector, ProcessedOutput } from '@/types';
 import PodcastPanel from './PodcastPanel';
 import SprintPanel from './SprintPanel';
 import ScholarPanel from './ScholarPanel';
+import { getDominantMode, getLayoutStrategy } from '@/lib/layout';
 
 interface LayoutControllerProps {
   neuroPrint: NeuroPrintVector;
@@ -14,13 +15,10 @@ interface LayoutControllerProps {
 export default function LayoutController({ neuroPrint, session }: LayoutControllerProps) {
   // Identify the single highest-priority mode
   const bestMode = useMemo(() => {
-    const scores = [
-      { id: 'audio', val: neuroPrint.audio },
-      { id: 'adhd', val: neuroPrint.adhd },
-      { id: 'scholar', val: neuroPrint.scholar },
-    ];
-    return scores.sort((a, b) => b.val - a.val)[0].id;
+    return getDominantMode(neuroPrint);
   }, [neuroPrint]);
+
+  const layoutStrategy = useMemo(() => getLayoutStrategy(neuroPrint), [neuroPrint]);
 
   const renderPanel = () => {
     switch(bestMode) {
@@ -40,7 +38,10 @@ export default function LayoutController({ neuroPrint, session }: LayoutControll
          </div>
       </div>
 
-      <div className="min-h-[700px] border border-border/40 rounded-[3rem] overflow-hidden glass-silk shadow-premium relative">
+      <div className={[
+        "min-h-[700px] border border-border/40 rounded-[3rem] overflow-hidden glass-silk shadow-premium relative",
+        layoutStrategy === 'single' ? 'max-w-5xl mx-auto' : '',
+      ].join(' ')}>
          {renderPanel()}
       </div>
     </div>

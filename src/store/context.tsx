@@ -8,11 +8,33 @@ import { initialAppState, mockAudioLearner, mockADHDLearner } from '@/lib/mock';
  * MOCK TOGGLE (Change this to switch learner types)
  */
 const CURRENT_VECTOR = mockAudioLearner; 
+const NEUROPRINT_STORAGE_KEY = 'tuned:neuroprint';
 
-const OVERRIDE_INITIAL_STATE: AppState = {
+function loadStoredNeuroPrint(): NeuroPrintVector | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(NEUROPRINT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<NeuroPrintVector>;
+    if (
+      typeof parsed.audio === 'number' &&
+      typeof parsed.adhd === 'number' &&
+      typeof parsed.scholar === 'number' &&
+      typeof parsed.lastUpdated === 'number' &&
+      typeof parsed.manualOverride === 'boolean'
+    ) {
+      return parsed as NeuroPrintVector;
+    }
+  } catch {
+    // Ignore corrupt persisted state and fall back to the default vector.
+  }
+  return null;
+}
+
+const buildInitialState = (): AppState => ({
   ...initialAppState,
-  neuroPrint: CURRENT_VECTOR
-};
+  neuroPrint: loadStoredNeuroPrint() ?? CURRENT_VECTOR,
+});
 
 /**
  * Action Types
@@ -64,7 +86,7 @@ const AppContext = createContext<AppContextProps | undefined>(undefined);
  * Global App Provider
  */
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(appReducer, OVERRIDE_INITIAL_STATE);
+  const [state, dispatch] = useReducer(appReducer, undefined, buildInitialState);
 
   // Sync theme with HTML class
   React.useEffect(() => {
@@ -75,6 +97,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       root.classList.remove('dark');
     }
   }, [state.theme]);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(NEUROPRINT_STORAGE_KEY, JSON.stringify(state.neuroPrint));
+    } catch {
+      // Ignore storage failures in private mode or quota-limited environments.
+    }
+  }, [state.neuroPrint]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
