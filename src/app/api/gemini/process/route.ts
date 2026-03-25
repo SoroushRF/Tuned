@@ -6,6 +6,7 @@ import {
   logGeminiError,
   logGeminiRequest,
   logGeminiResponse,
+  isGeminiDebugEnabled,
   summarizeText,
 } from "@/lib/gemini/debug";
 
@@ -261,6 +262,13 @@ export async function POST(req: NextRequest) {
         ...parsed.podcast,
         ...shortenedPodcast,
       };
+      if (isGeminiDebugEnabled()) {
+        console.log(`[gemini:process] ${requestId} podcast details`, {
+          podcastSegmentCount: shortenedPodcast.segments.length,
+          podcastWasShortened: shortenedPodcast.isShortened,
+          podcastTargetDurationSeconds: shortenedPodcast.targetDurationSeconds ?? null,
+        });
+      }
     }
     return NextResponse.json(parsed);
 

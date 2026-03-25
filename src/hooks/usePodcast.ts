@@ -264,6 +264,12 @@ export const usePodcast = (script?: PodcastScript) => {
         }
 
         setWasShortened(Boolean(audioData.wasShortened));
+        console.log('[podcast] audio generated', {
+          segmentCount: audioData.segmentCount,
+          wasShortened: Boolean(audioData.wasShortened),
+          mimeType: audioData.mimeType,
+          sampleRate: audioData.sampleRate,
+        });
 
         const bytes = base64ToUint8Array(audioData.audioBase64);
         const blob = new Blob([bytes], { type: audioData.mimeType || 'audio/wav' });
@@ -330,6 +336,7 @@ export const usePodcast = (script?: PodcastScript) => {
         if (abortController.signal.aborted || !isMountedRef.current) {
           return;
         }
+        console.error('[podcast] audio generation failed', err);
         setStatus('error');
         setError(err?.message || 'Failed to generate podcast audio.');
       }
@@ -367,6 +374,7 @@ export const usePodcast = (script?: PodcastScript) => {
     try {
       await audio.play();
     } catch {
+      console.error('[podcast] playback failed to start');
       setStatus('error');
       setError('Playback failed. Please try again.');
     }
@@ -410,6 +418,7 @@ export const usePodcast = (script?: PodcastScript) => {
     try {
       await audio.play();
     } catch {
+      console.error('[podcast] restart playback failed');
       setStatus('error');
       setError('Playback failed. Please try again.');
     }

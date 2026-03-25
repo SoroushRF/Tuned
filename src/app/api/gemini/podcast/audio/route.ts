@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { PodcastScript } from '@/types';
+import {
+  createGeminiDebugId,
+  logGeminiError,
+  logGeminiRequest,
+  logGeminiResponse,
+  summarizeText,
+} from '@/lib/gemini/debug';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
@@ -82,6 +89,8 @@ function trimPodcastScript(script: PodcastScript) {
 }
 
 export async function POST(req: NextRequest) {
+  const requestId = createGeminiDebugId('podcast_audio');
+  const startedAt = Date.now();
   try {
     const { script } = (await req.json()) as { script?: PodcastScript };
 
@@ -99,6 +108,22 @@ export async function POST(req: NextRequest) {
 
     const shortenedScript = trimPodcastScript(script);
     const transcript = buildTranscript(shortenedScript);
+    const transcriptWordCount = transcript.trim().split(/\s+/).filter(Boolean).length;
+
+    logGeminiRequest('podcast_audio', requestId, {
+      model: AUDIO_MODEL,
+      originalSegmentCount: script.segments.length,
+      shortenedSegmentCount: shortenedScript.segments.length,
+      originalWordCount: script.segments
+        .map((segment) => segment.text)
+        .join(' ')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length,
+      transcriptWordCount,
+      wasShortened: shortenedScript.wasShortened,
+      transcriptPreview: summarizeText(transcript, 500),
+    });
 
     const response = await ai.models.generateContent({
       model: AUDIO_MODEL,
@@ -146,6 +171,13 @@ export async function POST(req: NextRequest) {
     const pcmBuffer = Buffer.from(audioBase64, 'base64');
     const wavBuffer = pcmToWavBuffer(pcmBuffer);
 
+    logGeminiResponse('podcast_audio', requestId, Date.now() - startedAt, {
+      audioBase64Length: audioBase64.length,
+      wavByteLength: wavBuffer.length,
+      wasShortened: shortenedScript.wasShortened,
+      segmentCount: shortenedScript.segments.length,
+    });
+
     return NextResponse.json({
       audioBase64: wavBuffer.toString('base64'),
       mimeType: 'audio/wav',
@@ -159,6 +191,7 @@ export async function POST(req: NextRequest) {
       segmentCount: shortenedScript.segments.length,
     });
   } catch (error: any) {
+    logGeminiError('podcast_audio', requestId, error);
     console.error('Podcast Audio API Error:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to generate podcast audio.' },
