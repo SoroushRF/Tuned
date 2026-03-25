@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { PODCAST_PROMPT } from '@/prompts/podcast';
 import { PodcastScript } from '@/types';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 export async function POST(req: Request) {
   try {
@@ -16,9 +15,15 @@ export async function POST(req: Request) {
 
     const filledPrompt = PODCAST_PROMPT.replace('{{CONTENT}}', content);
 
-    const result = await model.generateContent(filledPrompt);
-    const response = await result.response;
-    const text = response.text();
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash", 
+      contents: [{ role: 'user', parts: [{ text: filledPrompt }] }],
+      config: {
+        responseMimeType: "application/json"
+      }
+    });
+    
+    const text = response.text || "";
     
     // Attempt to extract JSON if Gemini wraps it in markdown blocks
     const jsonMatch = text.match(/\[[\s\S]*\]/) || text.match(/\{[\s\S]*\}/);

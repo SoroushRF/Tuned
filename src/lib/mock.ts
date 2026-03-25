@@ -8,16 +8,23 @@ import {
   AppState
 } from '@/types';
 
-/**
- * Mock NeuroPrint Profile (Blended Learner)
- */
-export const mockNeuroPrint: NeuroPrintVector = {
-  audio: 0.85,             // Strong audio preference
-  adhd: 0.70,              // High ADHD (fast-paced focus cards)
-  scholar: 0.35,           // Lower weight for dense text
+export const mockAudioLearner: NeuroPrintVector = {
+  audio: 0.9,
+  adhd: 0.2,
+  scholar: 0.1,
   lastUpdated: Date.now(),
   manualOverride: false
 };
+
+export const mockADHDLearner: NeuroPrintVector = {
+  audio: 0.1,
+  adhd: 0.9,
+  scholar: 0.3,
+  lastUpdated: Date.now(),
+  manualOverride: false
+};
+
+export const mockNeuroPrint: NeuroPrintVector = mockAudioLearner;
 
 /**
  * Mock Sprint Cards (ADHD Profile)
@@ -121,8 +128,8 @@ export const mockProcessedOutput: ProcessedOutput = {
  */
 export const initialAppState: AppState = {
   neuroPrint: mockNeuroPrint,
-  currentSession: mockProcessedOutput,
+  currentSession: undefined,
   isLoading: false,
-  streak: 5,
+  streak: 0,
   theme: 'dark'
 };

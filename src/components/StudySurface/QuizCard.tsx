@@ -88,12 +88,12 @@ export default function QuizCard({ questions }: QuizCardProps) {
               <button
                 key={i}
                 onClick={() => submitAnswer(i)}
-                className="group relative flex items-center gap-8 p-8 rounded-[3rem] bg-secondary/40 border border-transparent hover:border-primary hover:bg-primary/5 transition-all active:scale-[0.98] group/opt shadow-inner"
+                className="group relative flex items-center gap-8 p-8 rounded-[3rem] bg-card dark:bg-secondary/40 border border-border/80 hover:border-primary hover:bg-primary/5 transition-all active:scale-[0.98] group/opt shadow-inner"
               >
-                <div className="w-12 h-12 rounded-[1.25rem] bg-card border border-border flex items-center justify-center text-[11px] font-black text-muted-foreground group-hover/opt:bg-foreground group-hover/opt:text-background transition-all shadow-xl">
+                <div className="w-12 h-12 rounded-[1.25rem] bg-foreground text-background border border-border flex items-center justify-center text-[11px] font-black group-hover/opt:bg-primary group-hover/opt:text-primary-foreground transition-all shadow-xl">
                    {String.fromCharCode(65 + i)}
                 </div>
-                <span className="flex-1 font-bold text-xl text-foreground/60 group-hover/opt:text-foreground transition-all tracking-tight text-left">{option}</span>
+                <span className="flex-1 font-bold text-xl text-foreground dark:text-white group-hover/opt:text-primary dark:group-hover/opt:text-white transition-all tracking-tight text-left">{option}</span>
                 <div className="w-3 h-3 rounded-full bg-primary opacity-0 group-hover/opt:opacity-100 transition-opacity shadow-[0_0_10px_rgba(99,102,241,1)]" />
               </button>
             ))}
@@ -114,7 +114,7 @@ export default function QuizCard({ questions }: QuizCardProps) {
             <div className="flex items-center gap-5 mb-8">
                <span className="text-[11px] font-black text-amber-500 uppercase tracking-[0.5em]">Cognitive Angle 🧬</span>
             </div>
-            <p className="text-xl text-muted-foreground font-bold leading-relaxed tracking-tight opacity-80">{currentQuestion.explanation}</p>
+            <p className="text-xl text-foreground font-bold leading-relaxed tracking-tight">{currentQuestion.explanation}</p>
           </div>
 
           <button 
