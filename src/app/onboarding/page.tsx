@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/store/context';
-import NeuroPrintSurvey from '@/components/Survey/NeuroPrintSurvey';
+import { NeuroPrintVector } from '@/types';
+import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 
 const IconBrain = () => (
   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary animate-pulse">
@@ -62,8 +63,8 @@ export default function OnboardingPage() {
       <div className="absolute inset-0 bg-primary/5 blur-[120px] rounded-full opacity-50 pointer-events-none" />
 
       {stage === 'survey' && (
-        <NeuroPrintSurvey 
-          onComplete={(vector) => {
+        <OnboardingFlow 
+          onComplete={(vector: NeuroPrintVector) => {
             dispatch({ type: 'SET_NEUROPRINT', payload: vector });
             setStage('analyzing');
           }} 
