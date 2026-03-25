@@ -1,7 +1,7 @@
 import { createPartFromUri, GoogleGenAI } from '@google/genai';
 import { NextResponse } from 'next/server';
 import { SCHOLAR_PROMPT } from '@/prompts/scholar';
-import { ScholarContent } from '@/types';
+import { ScholarChunk, ScholarContent } from '@/types';
 import { buildScholarChunkManifest } from '@/lib/scholar/chunking';
 import {
   createGeminiDebugId,
@@ -14,24 +14,55 @@ import {
 const API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
+function uniqueStrings(values: string[]) {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
+
+function fallbackScholarChunks(content: string, sourceLabels: string[]): ScholarChunk[] {
+  const normalized = content.trim();
+  if (!normalized) return [];
+
+  const labels = sourceLabels.length > 0 ? sourceLabels : ['Combined Material'];
+  return labels.map((label, index) => ({
+    chunkId: `chunk-${index + 1}`,
+    sourceLabel: label,
+    pageLabel: `Chunk ${index + 1}`,
+    originalText: normalized,
+    simplifiedText: normalized,
+    summary: 'Fallback chunk generated from the uploaded material.',
+    highlightedTerms: [],
+    keyTerms: [],
+  }));
+}
+
 function normalizeScholarContent(content: ScholarContent): ScholarContent {
+  const highlightedTerms = uniqueStrings([
+    ...(Array.isArray(content.highlightedTerms) ? content.highlightedTerms : []),
+    ...(Array.isArray(content.keyTerms) ? content.keyTerms.map((term) => term.term) : []),
+  ]);
+  const sourceLabels = uniqueStrings(Array.isArray(content.sourceLabels) ? content.sourceLabels : []);
+  const chunks = Array.isArray(content.chunks) && content.chunks.length > 0
+    ? content.chunks.map((chunk, index) => ({
+        chunkId: chunk.chunkId || `chunk-${index + 1}`,
+        sourceLabel: chunk.sourceLabel || sourceLabels[index % Math.max(1, sourceLabels.length)] || 'Combined Material',
+        pageLabel: chunk.pageLabel || `Chunk ${index + 1}`,
+        originalText: chunk.originalText || content.originalText || '',
+        simplifiedText: chunk.simplifiedText || content.simplifiedText || '',
+        summary: chunk.summary || '',
+        highlightedTerms: uniqueStrings([
+          ...(Array.isArray(chunk.highlightedTerms) ? chunk.highlightedTerms : []),
+          ...(Array.isArray(chunk.keyTerms) ? chunk.keyTerms.map((term) => term.term) : []),
+        ]),
+        keyTerms: Array.isArray(chunk.keyTerms) ? chunk.keyTerms.slice(0, 8) : [],
+      }))
+    : fallbackScholarChunks(content.originalText || content.simplifiedText || '', sourceLabels);
+
   return {
     ...content,
     keyTerms: Array.isArray(content.keyTerms) ? content.keyTerms.slice(0, 12) : [],
-    highlightedTerms: Array.isArray(content.highlightedTerms) ? content.highlightedTerms : [],
-    sourceLabels: Array.isArray(content.sourceLabels) ? content.sourceLabels : [],
-    chunks: Array.isArray(content.chunks)
-      ? content.chunks.map((chunk, index) => ({
-          chunkId: chunk.chunkId || `chunk-${index + 1}`,
-          sourceLabel: chunk.sourceLabel || 'Combined Material',
-          pageLabel: chunk.pageLabel || `Chunk ${index + 1}`,
-          originalText: chunk.originalText || '',
-          simplifiedText: chunk.simplifiedText || '',
-          summary: chunk.summary || '',
-          highlightedTerms: Array.isArray(chunk.highlightedTerms) ? chunk.highlightedTerms : [],
-          keyTerms: Array.isArray(chunk.keyTerms) ? chunk.keyTerms.slice(0, 8) : [],
-        }))
-      : [],
+    highlightedTerms,
+    sourceLabels,
+    chunks,
   };
 }
 
@@ -75,6 +106,7 @@ export async function POST(req: Request) {
       pdfNames: pdfFiles.map((file) => file.name),
       scholarSourceCount: scholarBundle.sourceCount,
       scholarChunkCount: scholarBundle.chunkCount,
+      route: 'scholar',
       model: 'gemini-2.5-flash',
     });
 
@@ -127,12 +159,46 @@ export async function POST(req: Request) {
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     const cleanedJson = jsonMatch ? jsonMatch[0] : text;
-    const scholarContent = normalizeScholarContent(JSON.parse(cleanedJson) as ScholarContent);
+    let parsed: unknown;
+
+    try {
+      parsed = JSON.parse(cleanedJson);
+    } catch (parseError) {
+      logGeminiError('scholar', requestId, parseError);
+      return NextResponse.json(
+        {
+          error: 'Gemini returned an unreadable scholar payload.',
+          requestId,
+        },
+        { status: 502 }
+      );
+    }
+
+    if (typeof parsed !== 'object' || parsed === null) {
+      return NextResponse.json(
+        {
+          error: 'Gemini returned an invalid scholar payload shape.',
+          requestId,
+        },
+        { status: 502 }
+      );
+    }
+
+    const scholarContent = normalizeScholarContent(parsed as ScholarContent);
 
     return NextResponse.json(scholarContent);
   } catch (error) {
     logGeminiError('scholar', requestId, error);
     console.error('Scholar API Error:', error);
-    return NextResponse.json({ error: 'Failed to generate scholar content' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to generate scholar content';
+    return NextResponse.json(
+      {
+        error: message.includes('API key')
+          ? 'Scholar generation is unavailable because Gemini is not configured.'
+          : 'Failed to generate scholar content',
+        requestId,
+      },
+      { status: 500 }
+    );
   }
 }
