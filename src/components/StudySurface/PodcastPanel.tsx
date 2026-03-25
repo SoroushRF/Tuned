@@ -116,25 +116,28 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={togglePlayback}
-              disabled={!hasTranscript || isLoading}
-              className="flex-1 rounded-2xl bg-foreground text-background px-5 py-4 text-sm font-bold shadow-sm hover:shadow-md active:translate-y-[1px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Generating...' : isPlaying ? 'Pause' : 'Play'}
-            </button>
-            <button
-              onClick={restart}
-              disabled={!hasTranscript || isLoading}
-              className="rounded-2xl border border-border/40 bg-card px-4 py-4 text-sm font-bold text-foreground/80 hover:bg-secondary/30 active:translate-y-[1px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Restart
-            </button>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={togglePlayback}
+                disabled={!hasTranscript || isLoading}
+                className="flex-1 rounded-2xl bg-foreground text-background px-5 py-4 text-sm font-bold shadow-sm hover:shadow-md active:translate-y-[1px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Generating...' : isPlaying ? 'Pause' : 'Play'}
+              </button>
+              <button
+                onClick={restart}
+                disabled={!hasTranscript || isLoading}
+                className="flex-1 rounded-2xl border border-border/40 bg-card px-5 py-4 text-sm font-bold text-foreground/80 hover:bg-secondary/30 active:translate-y-[1px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Restart
+              </button>
+            </div>
+
             <button
               onClick={stop}
               disabled={!hasTranscript || isLoading}
-              className="rounded-2xl border border-border/40 bg-card px-4 py-4 text-sm font-bold text-foreground/80 hover:bg-secondary/30 active:translate-y-[1px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full rounded-2xl border border-border/40 bg-card px-5 py-4 text-sm font-bold text-foreground/80 hover:bg-secondary/30 active:translate-y-[1px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Stop
             </button>
