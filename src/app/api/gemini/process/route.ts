@@ -1,6 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
 import { NeuroPrintVector } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  createGeminiDebugId,
+  logGeminiError,
+  logGeminiRequest,
+  logGeminiResponse,
+  summarizeText,
+} from "@/lib/gemini/debug";
 
 // Pull the first available API key for the new SDK
 const API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
@@ -25,6 +32,8 @@ const SCHOLAR_PROMPT_EXTENSION = `
 `;
 
 export async function POST(req: NextRequest) {
+  const requestId = createGeminiDebugId("process");
+  const startedAt = Date.now();
   try {
     const { text, vector } = (await req.json()) as { text: string; vector: NeuroPrintVector };
 
@@ -37,6 +46,13 @@ export async function POST(req: NextRequest) {
       console.error("Nuro Error: GEMINI_API_KEY is missing from environment variables.");
       return NextResponse.json({ error: "API Key not configured." }, { status: 500 });
     }
+
+    logGeminiRequest("process", requestId, {
+      textLength: text.length,
+      textPreview: summarizeText(text, 500),
+      vector,
+      model: "gemini-1.5-flash",
+    });
 
     // 1. Build Personality Traits from Vector
     let personality = "Tone: Balanced and professional. ";
@@ -103,6 +119,10 @@ export async function POST(req: NextRequest) {
     });
 
     const responseText = response.text || "";
+    logGeminiResponse("process", requestId, Date.now() - startedAt, {
+      responseLength: responseText.length,
+      responsePreview: summarizeText(responseText, 500),
+    });
     console.log("------------------------ NURO RESPONSE RAW ------------------------");
     console.log(responseText);
     console.log("-------------------------------------------------------------------");
@@ -120,6 +140,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(JSON.parse(cleanJson));
 
   } catch (error: any) {
+    logGeminiError("process", requestId, error);
     console.error("Nuro Synthesis FAILURE (Gemini 3 Debug):", error);
     return NextResponse.json({ error: error.message || "Neural synthesis failed." }, { status: 500 });
   }

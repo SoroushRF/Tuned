@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import {
+  createGeminiDebugId,
+  logGeminiError,
+  logGeminiRequest,
+  logGeminiResponse,
+  summarizeText,
+} from "@/lib/gemini/debug";
 
 const API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
 const genAI = new GoogleGenAI({ apiKey: API_KEY });
 
 export async function POST(req: NextRequest) {
+  const requestId = createGeminiDebugId("onboarding");
+  const startedAt = Date.now();
   try {
     const { history, questions } = await req.json();
 
@@ -19,6 +28,13 @@ export async function POST(req: NextRequest) {
       if (state.freeText) {
         context += `Free-form context provided by user: "${state.freeText}"\n`;
       }
+    });
+
+    logGeminiRequest("onboarding", requestId, {
+      answersCount: Object.keys(history || {}).length,
+      contextLength: context.length,
+      contextPreview: summarizeText(context, 700),
+      model: "gemini-2.5-flash",
     });
 
     const ai = genAI;
@@ -55,6 +71,10 @@ export async function POST(req: NextRequest) {
 
     const resultText = response.text || "{}";
     const vectorResult = JSON.parse(resultText);
+    logGeminiResponse("onboarding", requestId, Date.now() - startedAt, {
+      responseLength: resultText.length,
+      responsePreview: summarizeText(resultText, 500),
+    });
 
     return NextResponse.json({
       ...vectorResult,
@@ -63,6 +83,7 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
+    logGeminiError("onboarding", requestId, error);
     console.error("Onboarding Analysis Error:", error);
     // Fallback to a neutral profile if AI fails
     return NextResponse.json({
