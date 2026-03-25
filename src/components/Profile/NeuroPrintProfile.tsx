@@ -10,7 +10,19 @@ interface NeuroPrintProfileProps {
 
 const IconClose = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>;
 
-export default function NeuroPrintProfile({ vector, onClose }: NeuroPrintProfileProps) {
+import { useAppContext } from '@/store/context';
+import { useMemo } from 'react';
+
+export default function NeuroPrintProfile({ vector: initialVector, onClose }: NeuroPrintProfileProps) {
+  const { state, dispatch } = useAppContext();
+  const vector = state.neuroPrint;
+
+  const handleUpdate = (key: keyof NeuroPrintVector, val: number) => {
+    dispatch({
+      type: 'SET_NEUROPRINT',
+      payload: { ...vector, [key]: val, lastUpdated: Date.now() }
+    });
+  };
   // Simple radar chart calculation (SVG Points)
   const centerX = 150;
   const centerY = 150;
@@ -88,17 +100,25 @@ export default function NeuroPrintProfile({ vector, onClose }: NeuroPrintProfile
             <h3 className="text-xs font-black uppercase tracking-[0.4em] text-muted-foreground/40">Cognitive Breakdown</h3>
             <div className="grid grid-cols-1 gap-8">
               {[
-                { label: 'Auditory Path', value: Math.round(vector.audio * 100), color: 'bg-blue-500', desc: 'Efficiency in speech-to-logic conversion.' },
-                { label: 'Micro-Focus', value: Math.round(vector.adhd * 100), color: 'bg-indigo-500', desc: 'Resilience in high-velocity contexts.' },
-                { label: 'Context Depth', value: Math.round(vector.scholar * 100), color: 'bg-violet-500', desc: 'Ability to simplify abstract structures.' },
+                { label: 'Auditory Path', id: 'audio', value: vector.audio, color: 'bg-blue-500', desc: 'Efficiency in speech-to-logic conversion.' },
+                { label: 'Micro-Focus', id: 'adhd', value: vector.adhd, color: 'bg-indigo-500', desc: 'Resilience in high-velocity contexts.' },
+                { label: 'Context Depth', id: 'scholar', value: vector.scholar, color: 'bg-violet-500', desc: 'Ability to simplify abstract structures.' },
               ].map((item, i) => (
                 <div key={i} className="group">
                   <div className="flex justify-between items-end mb-3">
                     <span className="text-sm font-black tracking-tight">{item.label}</span>
-                    <span className="text-xl font-black text-primary">{item.value}%</span>
+                    <span className="text-xl font-black text-primary">{Math.round(item.value * 100)}%</span>
                   </div>
-                  <div className="h-2 w-full bg-secondary rounded-full overflow-hidden p-[1px] border border-border">
-                    <div className={`h-full ${item.color} rounded-full transition-all duration-1000 delay-500`} style={{ width: `${item.value}%` }} />
+                  <div className="relative h-8 flex items-center">
+                    <input 
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={item.value}
+                      onChange={(e) => handleUpdate(item.id as keyof NeuroPrintVector, parseFloat(e.target.value))}
+                      className="w-full h-1.5 bg-secondary rounded-full appearance-none cursor-pointer accent-primary"
+                    />
                   </div>
                   <p className="text-[10px] text-muted-foreground font-bold mt-3 opacity-60 group-hover:opacity-100 transition-opacity">{item.desc}</p>
                 </div>
@@ -122,4 +142,4 @@ export default function NeuroPrintProfile({ vector, onClose }: NeuroPrintProfile
   );
 }
 
-import { useMemo } from 'react';
+

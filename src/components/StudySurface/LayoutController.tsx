@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { NeuroPrintVector, ProcessedOutput } from '@/types';
 import PodcastPanel from './PodcastPanel';
 import SprintCard from './SprintCard';
@@ -43,16 +43,17 @@ const IconCheck = () => (
 );
 
 export default function LayoutController({ neuroPrint, session }: LayoutControllerProps) {
-  const initialMode = useMemo(() => {
+  useEffect(() => {
     const scores = [
       { mode: 'audio', value: neuroPrint.audio },
       { mode: 'adhd', value: neuroPrint.adhd },
       { mode: 'scholar', value: neuroPrint.scholar },
     ];
-    return scores.sort((a, b) => b.value - a.value)[0].mode;
+    const topMode = scores.sort((a, b) => b.value - a.value)[0].mode;
+    setActiveMode(topMode);
   }, [neuroPrint]);
 
-  const [activeMode, setActiveMode] = useState<string>(initialMode);
+  const [activeMode, setActiveMode] = useState<string>('audio');
   const [isSessionFinished, setIsSessionFinished] = useState(false);
 
   if (isSessionFinished) {
