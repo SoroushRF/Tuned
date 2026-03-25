@@ -998,29 +998,29 @@ Hour 11–12   → BOTH: Demo video recording + README
 | Study Surface | Shell | `hooks/useSession.ts` (content/loading state) | hook | U0 | ✅ | Parsa | P1-parallel | types/index.ts | 45 min | ⬜ |
 | Study Surface | UI | Processing loading state animation | component | U0 | ✅ | Parsa | P1-parallel | nothing | 45 min | ⬜ |
 | Study Surface | UI | Suggestion chip rendering logic | component | U1 | 🟡 | Parsa | P1-parallel | StudySurface | 30 min | ⬜ |
-| Podcast | Pipeline | Podcast script prompt (`prompts/podcast.ts`) | prompt | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 45 min | ⬜ |
-| Podcast | API | Podcast API route (`/api/gemini/podcast`) | api | U0 | ✅ | Parsa | P1-parallel | prompt | 30 min | ⬜ |
-| Podcast | Hook | `hooks/usePodcast.ts` (playback state) | hook | U0 | ✅ | Parsa | P1-parallel | types/index.ts | 45 min | ⬜ |
-| Podcast | UI | `PodcastPanel` (script + controls) | component | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 60 min | ⬜ |
-| Podcast | UI | `ScriptView` (readable text) | component | U0 | ✅ | Parsa | P1-parallel | nothing | 30 min | ⬜ |
-| Podcast | UI | Web Speech API dual-voice implementation | engine | U0 | ✅ | Parsa | P1-parallel | nothing | 60 min | ⬜ |
-| Sprint | Pipeline | Content chunking prompt (`prompts/sprint.ts`) | prompt | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 45 min | ⬜ |
-| Sprint | API | Sprint API route (`/api/gemini/sprint`) | api | U0 | ✅ | Parsa | P1-parallel | prompt | 30 min | ⬜ |
-| Sprint | Hook | `hooks/useSprint.ts` (card navigation) | hook | U0 | ✅ | Parsa | P1-parallel | types/index.ts | 45 min | ⬜ |
-| Sprint | UI | `SprintCard` focus mode component | component | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 60 min | ⬜ |
-| Sprint | UI | `ConstellationProgress` component | component | U0 | ✅ | Parsa | P1-parallel | nothing | 60 min | ⬜ |
-| Sprint | UI | `StreakCounter` component | component | U0 | ✅ | Parsa | P1-parallel | nothing | 20 min | ⬜ |
-| Sprint | UI | `MilestoneToast` component | component | U1 | 🟡 | Parsa | P1-parallel | nothing | 30 min | ⬜ |
-| Sprint | UI | `SprintTimer` opt-in component | component | U1 | ⬜ | Parsa | P1-parallel | nothing | 30 min | ⬜ |
-| Scholar | Pipeline | Side-by-side simplification prompt | prompt | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 45 min | ⬜ |
-| Scholar | Pipeline | Tooltip generation prompt | prompt | U0 | ✅ | Parsa | P1-parallel | nothing | 30 min | 0 |
-| Scholar | API | Scholar API route (`/api/gemini/scholar`) | api | U0 | ✅ | Parsa | P1-parallel | prompt | 30 min | ⬜ |
-| Scholar | Hook | `hooks/useScholar.ts` (slider/tooltip state) | hook | U0 | ✅ | Parsa | P1-parallel | types/index.ts | 45 min | ⬜ |
-| Scholar | UI | `SideBySidePanel` layout component | component | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 60 min | ⬜ |
-| Scholar | UI | Amber underline for key terms | component | U0 | ✅ | Parsa | P1-parallel | nothing | 30 min | ⬜ |
-| Scholar | UI | `TermTooltip` (def + exam note) | component | U0 | ✅ | Parsa | P1-parallel | nothing | 45 min | ⬜ |
-| Scholar | UI | `DifficultySlider` + vector signal logic | component | U0 | ✅ | Parsa | P1-parallel | nothing | 45 min | ⬜ |
-| Scholar | UI | `ConceptMap` React Flow component | component | U1 | 🟡 | Parsa | P1-parallel | nothing | 2 hrs | ⬜ |
+| Podcast | Pipeline | Podcast script prompt (`prompts/podcast.ts`) | prompt | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 45 min | ✅ |
+| Podcast | API | Podcast API route (`/api/gemini/podcast`) | api | U0 | ✅ | Parsa | P1-parallel | prompt | 30 min | ✅ |
+| Podcast | Hook | `hooks/usePodcast.ts` (playback state) | hook | U0 | ✅ | Parsa | P1-parallel | types/index.ts | 45 min | ✅ |
+| Podcast | UI | `PodcastPanel` (script + controls) | component | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 60 min | ✅ |
+| Podcast | UI | `ScriptView` (readable text) | component | U0 | ✅ | Parsa | P1-parallel | nothing | 30 min | ✅ |
+| Podcast | UI | Web Speech API dual-voice implementation | engine | U0 | ✅ | Parsa | P1-parallel | nothing | 60 min | ✅ |
+| Sprint | Pipeline | Content chunking prompt (`prompts/sprint.ts`) | prompt | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 45 min | ✅ |
+| Sprint | API | Sprint API route (`/api/gemini/sprint`) | api | U0 | ✅ | Parsa | P1-parallel | prompt | 30 min | ✅ |
+| Sprint | Hook | `hooks/useSprint.ts` (card navigation) | hook | U0 | ✅ | Parsa | P1-parallel | types/index.ts | 45 min | ✅ |
+| Sprint | UI | `SprintCard` focus mode component | component | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 60 min | ✅ |
+| Sprint | UI | `ConstellationProgress` component | component | U0 | ✅ | Parsa | P1-parallel | nothing | 60 min | ✅ |
+| Sprint | UI | `StreakCounter` component | component | U0 | ✅ | Parsa | P1-parallel | nothing | 20 min | ✅ |
+| Sprint | UI | `MilestoneToast` component | component | U1 | 🟡 | Parsa | P1-parallel | nothing | 30 min | ✅ |
+| Sprint | UI | `SprintTimer` opt-in component | component | U1 | ⬜ | Parsa | P1-parallel | nothing | 30 min | ✅ |
+| Scholar | Pipeline | Side-by-side simplification prompt | prompt | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 45 min | ✅ |
+| Scholar | Pipeline | Tooltip generation prompt | prompt | U0 | ✅ | Parsa | P1-parallel | nothing | 30 min | ✅ |
+| Scholar | API | Scholar API route (`/api/gemini/scholar`) | api | U0 | ✅ | Parsa | P1-parallel | prompt | 30 min | ✅ |
+| Scholar | Hook | `hooks/useScholar.ts` (slider/tooltip state) | hook | U0 | ✅ | Parsa | P1-parallel | types/index.ts | 45 min | ✅ |
+| Scholar | UI | `SideBySidePanel` layout component | component | U0 | ✅ | Parsa | P1-parallel | lib/mock.ts | 60 min | ✅ |
+| Scholar | UI | Amber underline for key terms | component | U0 | ✅ | Parsa | P1-parallel | nothing | 30 min | ✅ |
+| Scholar | UI | `TermTooltip` (def + exam note) | component | U0 | ✅ | Parsa | P1-parallel | nothing | 45 min | ✅ |
+| Scholar | UI | `DifficultySlider` + vector signal logic | component | U0 | ✅ | Parsa | P1-parallel | nothing | 45 min | ✅ |
+| Scholar | UI | `ConceptMap` React Flow component | component | U1 | 🟡 | Parsa | P1-parallel | nothing | 2 hrs | ✅ |
 | Gemini Core | Pipeline | Main content processing prompt builder | prompt | U0 | ✅ | Soroush | P1-parallel | nothing | 60 min | ⬜ |
 | Gemini Core | Pipeline | NeuroPrint vector injection logic | engine | U0 | ✅ | Soroush | P1-parallel | nothing | 30 min | ⬜ |
 | Gemini Core | Pipeline | Target concept extraction prompt | prompt | U1 | 🟡 | Soroush | P1-parallel | nothing | 30 min | ⬜ |
@@ -1099,6 +1099,7 @@ In the demo video, Teach Me is framed as "what this becomes" — shown briefly a
 | Date | Author | Change |
 |---|---|---|
 | Mar 24, 2026 | Soroush | Initial document created from brainstorm session |
+| Mar 25, 2026 | Codex | Marked Podcast, Sprint/ADHD, and Scholar feature rows complete after implementation |
 
 ---
 
