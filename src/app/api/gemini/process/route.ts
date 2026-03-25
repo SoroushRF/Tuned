@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       vector,
       pdfCount: pdfFiles.length,
       pdfNames: pdfFiles.map((file) => file.name),
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
     });
 
     // 1. Build Personality Traits from Vector
@@ -143,6 +143,9 @@ export async function POST(req: NextRequest) {
       let fileRecord = uploaded;
       while (fileRecord.state !== "ACTIVE" && fileRecord.state !== "FAILED") {
         await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (!fileRecord.name) {
+          throw new Error(`Gemini did not return a file name for ${pdfFile.name}`);
+        }
         fileRecord = await ai.files.get({ name: fileRecord.name });
       }
 
@@ -150,12 +153,21 @@ export async function POST(req: NextRequest) {
         throw new Error(`Failed to upload PDF: ${pdfFile.name}`);
       }
 
-      uploadedPdfParts.push(createPartFromUri(fileRecord.uri!, fileRecord.mimeType!));
+      if (!fileRecord.uri) {
+        throw new Error(`Gemini did not return a URI for ${pdfFile.name}`);
+      }
+
+      const uri = fileRecord.uri;
+      const mimeType = fileRecord.mimeType ?? "application/pdf";
+
+      uploadedPdfParts.push(
+        createPartFromUri(uri, mimeType)
+      );
     }
 
     // 3. System Synthesis
     const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash", 
+      model: "gemini-2.5-flash",
       contents: [{
         role: "user",
         parts: [{ text: finalPrompt }, ...uploadedPdfParts],
