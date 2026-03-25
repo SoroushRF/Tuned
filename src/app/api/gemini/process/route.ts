@@ -160,12 +160,12 @@ export async function POST(req: NextRequest) {
       [CRITICAL]: The user's highest dimension is ${dominantMode.toUpperCase()}. You MUST make this section of the JSON the "Hero Section" with the most creative effort, depth, and detail. 
       If ${dominantMode} is highest:
       - For AUDIO: Make the podcast script concise, multi-perspective, and calm. Prefer 3 to 4 short exchanges, use minimal filler, and keep the spoken length close to 1 minute or under.
-      - For ADHD/SPRINT: Make the cards incredibly high-velocity, with many segments and riddles.
+      - For ADHD/SPRINT: Make the cards concise, focused, and low-overwhelm. Use one concept per card, at most 3 bullets, and a calm challenge question. Avoid hype, riddles, and long paragraphs.
       - For SCHOLAR: Provide the most rigorous and academic simplified text with etymological breakdowns.
       
       Your goal is to transform material into a unified JSON object matching this interface:
       {
-        "sprintCards": [{ "id": "string", "title": "string", "bullets": ["string"], "challenge": "string", "visualPrompt": "string" }],
+        "sprintCards": [{ "id": "string", "title": "string", "bullets": ["string"], "challenge": "string", "diagramPrompt": "string", "status": "pending", "rescue": { "reframeText": "string", "hint": "string", "visualAid": "string" } }],
         "scholar": { "originalText": "string", "simplifiedText": "string", "keyTerms": [{ "term": "string", "definition": "string", "examRelevance": "string" }] },
         "podcast": { "segments": [{ "speaker": "A" | "B", "text": "string" }] },
         "conceptMapNodes": [{ "id": "string", "label": "string" }],

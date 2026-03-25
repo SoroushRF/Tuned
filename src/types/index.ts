@@ -52,12 +52,23 @@ export interface NormalizedContent {
 /**
  * Parsa - ADHD Feature (Sprint Mode)
  */
+export type SprintCardStatus = 'pending' | 'active' | 'completed';
+
+export interface SprintCardRescue {
+  reframeText: string;
+  hint?: string;
+  visualAid?: string;
+}
+
 export interface SprintCard {
   id: string;
   title: string;
   bullets: string[];
   challenge: string;          // Single quick-check question
-  visualPrompt?: string;      // Optional Gemini-generated visual context
+  diagramPrompt?: string;      // Optional Gemini-generated visual context
+  visualPrompt?: string;       // Backward-compatible alias for older payloads
+  status?: SprintCardStatus;   // Completion state used by the sprint UI
+  rescue?: SprintCardRescue;   // Optional reframe if the user gets stuck
 }
 
 /**

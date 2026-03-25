@@ -12,6 +12,19 @@ import {
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
+function normalizeSprintCard(card: SprintCard): SprintCard {
+  const bullets = Array.isArray(card.bullets) ? card.bullets.slice(0, 3) : [];
+  const diagramPrompt = card.diagramPrompt ?? card.visualPrompt;
+
+  return {
+    ...card,
+    bullets,
+    diagramPrompt,
+    visualPrompt: diagramPrompt,
+    status: card.status ?? 'pending',
+  };
+}
+
 export async function POST(req: Request) {
   const requestId = createGeminiDebugId('sprint');
   const startedAt = Date.now();
@@ -47,7 +60,12 @@ export async function POST(req: Request) {
     const jsonMatch = text.match(/\[[\s\S]*\]/) || text.match(/\{[\s\S]*\}/);
     const cleanedJson = jsonMatch ? jsonMatch[0] : text;
     
-    const sprintCards: SprintCard[] = JSON.parse(cleanedJson);
+    const parsed = JSON.parse(cleanedJson);
+    if (!Array.isArray(parsed)) {
+      throw new Error('Sprint API returned a non-array payload');
+    }
+
+    const sprintCards: SprintCard[] = parsed.map(normalizeSprintCard);
 
     return NextResponse.json(sprintCards);
   } catch (error) {

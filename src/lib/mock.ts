@@ -35,14 +35,21 @@ export const mockSprintCards: SprintCard[] = [
     title: "Echo Chamber (Confirmation Bias)",
     bullets: ["Seek info confirming beliefs", "Ignore contradicting facts", "Minds love agreement", "Reinforces old ideas"],
     challenge: "I feed on what you already believe. What am I?",
-    visualPrompt: "Person in a thought bubble with 'Yes' signs"
+    diagramPrompt: "Person in a thought bubble with 'Yes' signs",
+    status: "pending",
+    rescue: {
+      reframeText: "Let’s slow it down and look at the idea from one level higher.",
+      hint: "It’s the bias that prefers agreement over evidence.",
+      visualAid: "A thought bubble with repeated approval marks"
+    }
   },
   {
     id: "SC002",
     title: "Mental Spotlight (Availability Heuristic)",
     bullets: ["Easy recall means common", "Vivid stories sway judgment", "Recent events loom large", "Familiarity feels more likely"],
     challenge: "I make rare events seem common because they're loud in your memory.",
-    visualPrompt: "Brain with a spotlight on a single memory"
+    diagramPrompt: "Brain with a spotlight on a single memory",
+    status: "pending"
   }
 ];
 
