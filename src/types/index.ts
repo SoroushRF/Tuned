@@ -9,11 +9,33 @@ export type InputType = 'pdf' | 'image' | 'text' | 'docx' | 'audio' | 'link';
  * NeuroPrint Profile - 0.0 to 1.0 weight per dimension
  */
 export interface NeuroPrintVector {
-  audio: number;            // Podcast script preference
-  adhd: number;             // Sprint card preference
-  scholar: number;          // Side-by-side / density preference
+  audio: number;            // [0, 1] Podcast script preference
+  adhd: number;             // [0, 1] Sprint card preference
+  scholar: number;          // [0, 1] Side-by-side / density preference
   lastUpdated: number;      // Unix timestamp
   manualOverride: boolean;  // True if user adjusted manually
+}
+
+/**
+ * Raw deltas used during survey calculation
+ */
+export interface NeuroPrintDeltas {
+  audio: number;
+  adhd: number;
+  scholar: number;
+}
+
+export interface SurveyOption {
+  label: string;
+  deltas: Partial<NeuroPrintDeltas>;
+  icon?: string;
+}
+
+export interface SurveyQuestion {
+  id: string;
+  text: string;
+  options: SurveyOption[];
+  isMultiSelect?: boolean;
 }
 
 /**

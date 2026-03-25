@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppContext } from '@/store/context';
-import NeuroPrintSurvey from '@/components/Survey/NeuroPrintSurvey';
+import { NeuroPrintVector } from '@/types';
+import OnboardingFlow from '@/components/onboarding/OnboardingFlow';
 
 const IconBrain = () => (
   <div className="relative">
@@ -68,15 +69,14 @@ export default function OnboardingPage() {
          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full animate-float delay-1000" />
       </div>
 
-      <div className="relative z-10 w-full max-w-5xl flex flex-col items-center">
-        {stage === 'survey' && (
-          <NeuroPrintSurvey 
-            onComplete={(vector) => {
-              dispatch({ type: 'SET_NEUROPRINT', payload: vector });
-              setStage('analyzing');
-            }} 
-          />
-        )}
+      {stage === 'survey' && (
+        <OnboardingFlow 
+          onComplete={(vector: NeuroPrintVector) => {
+            dispatch({ type: 'SET_NEUROPRINT', payload: vector });
+            setStage('analyzing');
+          }} 
+        />
+      )}
 
         {stage === 'analyzing' && (
           <div className="w-full max-w-xl p-16 space-y-16 animate-fade-in-up text-center">
@@ -117,7 +117,6 @@ export default function OnboardingPage() {
              </div>
           </div>
         )}
-      </div>
     </main>
   );
 }
