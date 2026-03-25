@@ -13,10 +13,14 @@ import {
 const API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
+const PODCAST_MAX_SEGMENTS = 4;
+const PODCAST_MAX_WORDS = 160;
+
 const PODCAST_PROMPT_EXTENSION = `
   [PODCAST EXPERT MODE]: The user has a high Auditory preference. 
-  Ensure the podcast script is exceptionally rhythmic, uses conversational fillers (like "Wait," "Actually," "Think of it this way"), 
-  and focuses on analogies that work well when heard. 
+  Ensure the podcast script is calm, academic, and tightly structured. 
+  Use clear phrasing, minimal filler, and short explanatory transitions. 
+  It should feel like a concise study recap rather than a performance. 
 `;
 
 const SPRINT_PROMPT_EXTENSION = `
@@ -30,6 +34,59 @@ const SCHOLAR_PROMPT_EXTENSION = `
   Ensure the simplified text doesn't lose technical nuance. 
   Key terms should include etymology or exam-specific context (e.g., "Likely to appear in MCQ about...").
 `;
+
+function trimPodcastText(text: string, maxWords: number) {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) {
+    return { text: text.trim(), wasTrimmed: false };
+  }
+
+  return {
+    text: `${words.slice(0, maxWords).join(' ')}...`,
+    wasTrimmed: true,
+  };
+}
+
+function shortenPodcastSegments(script: { segments: { speaker: 'A' | 'B'; text: string }[] }) {
+  let remainingWords = PODCAST_MAX_WORDS;
+  let shortened = false;
+
+  const nextSegments: { speaker: 'A' | 'B'; text: string }[] = [];
+
+  for (const segment of script.segments) {
+    if (nextSegments.length >= PODCAST_MAX_SEGMENTS || remainingWords <= 0) {
+      shortened = true;
+      break;
+    }
+
+    const words = segment.text.trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+      continue;
+    }
+
+    const maxWordsForSegment = Math.max(18, Math.floor(remainingWords / Math.max(1, PODCAST_MAX_SEGMENTS - nextSegments.length)));
+    const limit = Math.min(words.length, maxWordsForSegment, remainingWords);
+    const trimmed = trimPodcastText(segment.text, limit);
+    shortened = shortened || trimmed.wasTrimmed || words.length > limit;
+
+    nextSegments.push({
+      speaker: segment.speaker,
+      text: trimmed.text,
+    });
+
+    remainingWords -= limit;
+  }
+
+  if (script.segments.length > nextSegments.length) {
+    shortened = true;
+  }
+
+  return {
+    segments: nextSegments.length > 0 ? nextSegments : script.segments.slice(0, 1),
+    isShortened: shortened,
+    targetDurationSeconds: shortened ? 60 : undefined,
+  };
+}
 
 export async function POST(req: NextRequest) {
   const requestId = createGeminiDebugId("process");
@@ -77,7 +134,7 @@ export async function POST(req: NextRequest) {
 
     // 1. Build Personality Traits from Vector
     let personality = "Tone: Balanced and professional. ";
-    if (vector.audio > 0.7) personality += "Enthusiastic, conversational, and rhythmic (Auditory focus). ";
+    if (vector.audio > 0.7) personality += "Measured, articulate, and lecture-like (Auditory focus). ";
     if (vector.adhd > 0.7) personality += "High-velocity, punchy, and minimal (Sprint/ADHD focus). ";
     if (vector.scholar > 0.7) personality += "Rigorous, analytical, and deeply technical (Scholar focus). ";
 
@@ -101,7 +158,7 @@ export async function POST(req: NextRequest) {
       DOMINANT LEARNING MODE: ${dominantMode.toUpperCase()}
       [CRITICAL]: The user's highest dimension is ${dominantMode.toUpperCase()}. You MUST make this section of the JSON the "Hero Section" with the most creative effort, depth, and detail. 
       If ${dominantMode} is highest:
-      - For AUDIO: Make the podcast script longer, multi-perspective, and high-energy.
+      - For AUDIO: Make the podcast script concise, multi-perspective, and calm. Prefer 3 to 4 short exchanges, use minimal filler, and keep the spoken length close to 1 minute or under.
       - For ADHD/SPRINT: Make the cards incredibly high-velocity, with many segments and riddles.
       - For SCHOLAR: Provide the most rigorous and academic simplified text with etymological breakdowns.
       
@@ -118,7 +175,7 @@ export async function POST(req: NextRequest) {
       1. All keys in the interface MUST be populated with valid, creative content based on the input.
       2. If a section seems difficult to populate from raw text alone, use your depth as an AI to synthesize relevant academic context.
       3. NEVER return empty arrays ([]) or empty objects for any of the required keys.
-      4. Ensure at least 3 sprintCards and 5 podcast segments.
+      4. Ensure at least 3 sprintCards and 3 podcast segments. Prefer 4 or fewer podcast segments when the audio mode is dominant.
     `;
 
     const finalPrompt = `
@@ -197,7 +254,15 @@ export async function POST(req: NextRequest) {
     }
     
     const cleanJson = responseText.substring(start, end + 1).trim();
-    return NextResponse.json(JSON.parse(cleanJson));
+    const parsed = JSON.parse(cleanJson);
+    if (parsed?.podcast?.segments) {
+      const shortenedPodcast = shortenPodcastSegments(parsed.podcast);
+      parsed.podcast = {
+        ...parsed.podcast,
+        ...shortenedPodcast,
+      };
+    }
+    return NextResponse.json(parsed);
 
   } catch (error: any) {
     logGeminiError("process", requestId, error);

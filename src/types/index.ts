@@ -100,6 +100,8 @@ export interface PodcastScript {
     speaker: 'A' | 'B';
     text: string;
   }[];
+  isShortened?: boolean;
+  targetDurationSeconds?: number;
 }
 
 /**

@@ -8,6 +8,8 @@ const AUDIO_MODEL = 'gemini-2.5-flash-preview-tts';
 const SAMPLE_RATE = 24000;
 const CHANNELS = 1;
 const BITS_PER_SAMPLE = 16;
+const AUDIO_MAX_SEGMENTS = 4;
+const AUDIO_MAX_WORDS = 160;
 
 function pcmToWavBuffer(pcm: Buffer, channels = CHANNELS, sampleRate = SAMPLE_RATE, bitsPerSample = BITS_PER_SAMPLE) {
   const blockAlign = (channels * bitsPerSample) / 8;
@@ -37,6 +39,48 @@ function buildTranscript(script: PodcastScript) {
     .join('\n');
 }
 
+function trimPodcastScript(script: PodcastScript) {
+  let remainingWords = AUDIO_MAX_WORDS;
+  let wasShortened = Boolean(script.isShortened);
+  const segments: PodcastScript['segments'] = [];
+
+  for (const segment of script.segments) {
+    if (segments.length >= AUDIO_MAX_SEGMENTS || remainingWords <= 0) {
+      wasShortened = true;
+      break;
+    }
+
+    const words = segment.text.trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) {
+      continue;
+    }
+
+    const limit = Math.min(words.length, remainingWords);
+    if (limit < words.length) {
+      wasShortened = true;
+    }
+
+    const trimmedText = words.slice(0, limit).join(' ');
+    segments.push({
+      speaker: segment.speaker,
+      text: limit < words.length ? `${trimmedText}...` : trimmedText,
+    });
+
+    remainingWords -= limit;
+  }
+
+  if (script.segments.length > segments.length) {
+    wasShortened = true;
+  }
+
+  return {
+    ...script,
+    segments: segments.length > 0 ? segments : script.segments.slice(0, 1),
+    wasShortened,
+    targetDurationSeconds: wasShortened ? 60 : script.targetDurationSeconds,
+  };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { script } = (await req.json()) as { script?: PodcastScript };
@@ -53,7 +97,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const transcript = buildTranscript(script);
+    const shortenedScript = trimPodcastScript(script);
+    const transcript = buildTranscript(shortenedScript);
 
     const response = await ai.models.generateContent({
       model: AUDIO_MODEL,
@@ -77,13 +122,13 @@ export async function POST(req: NextRequest) {
               {
                 speaker: 'A',
                 voiceConfig: {
-                  prebuiltVoiceConfig: { voiceName: 'Kore' },
+                  prebuiltVoiceConfig: { voiceName: 'Charon' },
                 },
               },
               {
                 speaker: 'B',
                 voiceConfig: {
-                  prebuiltVoiceConfig: { voiceName: 'Puck' },
+                  prebuiltVoiceConfig: { voiceName: 'Rasalgethi' },
                 },
               },
             ],
@@ -106,11 +151,12 @@ export async function POST(req: NextRequest) {
       mimeType: 'audio/wav',
       sampleRate: SAMPLE_RATE,
       channels: CHANNELS,
+      wasShortened: shortenedScript.wasShortened,
       speakerVoiceMap: {
-        A: 'Kore',
-        B: 'Puck',
+        A: 'Charon',
+        B: 'Rasalgethi',
       },
-      segmentCount: script.segments.length,
+      segmentCount: shortenedScript.segments.length,
     });
   } catch (error: any) {
     console.error('Podcast Audio API Error:', error);

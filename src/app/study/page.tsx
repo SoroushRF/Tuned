@@ -8,15 +8,23 @@ import NeuroPrintProfile from '@/components/Profile/NeuroPrintProfile';
 import UploadDesk from '@/components/Upload/UploadDesk';
 
 const IconMoon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+  </svg>
 );
 
 const IconSun = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="M4.93 4.93l1.41 1.41" /><path d="M17.66 17.66l1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="M4.93 19.07l1.41-1.41" /><path d="M17.66 6.34l1.41-1.41" /></svg>
-);
-
-const IconLayout = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2" />
+    <path d="M12 20v2" />
+    <path d="M4.93 4.93l1.41 1.41" />
+    <path d="M17.66 17.66l1.41 1.41" />
+    <path d="M2 12h2" />
+    <path d="M20 12h2" />
+    <path d="M4.93 19.07l1.41-1.41" />
+    <path d="M17.66 6.34l1.41-1.41" />
+  </svg>
 );
 
 export default function StudyPage() {
@@ -30,7 +38,6 @@ export default function StudyPage() {
     dispatch({ type: 'SET_THEME', payload: isDark ? 'light' : 'dark' });
   };
 
-  // Jump to workspace when session is ready
   React.useEffect(() => {
     if (currentSession) {
       setActiveTab('workspace');
@@ -39,18 +46,15 @@ export default function StudyPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-400">
-      {/* Premium Header */}
       <header className="sticky top-0 z-50 w-full glass-silk px-10 py-4 flex items-center justify-between shadow-premium">
         <div className="flex items-center gap-12">
           <Link href="/" className="flex items-center gap-3 transition-shadow hover:shadow-md active:translate-y-[1px] group">
-            <div className="w-9 h-9 rounded-xl bg-foreground text-background flex items-center justify-center text-lg shadow-premium">✨</div>
+            <div className="w-9 h-9 rounded-xl bg-foreground text-background flex items-center justify-center text-lg shadow-premium">N</div>
             <span className="text-xl font-bold tracking-tighter">Nuro</span>
           </Link>
-
-          {/* Navigation removed as requested */}
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 md:gap-6">
           <div className="flex items-center gap-3">
             <button
               onClick={toggleTheme}
@@ -71,13 +75,12 @@ export default function StudyPage() {
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Dynamic Workspace */}
         <main className="flex-1 overflow-y-auto pt-2 px-12 pb-12 relative custom-scrollbar">
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-md z-[60] animate-in fade-in duration-500">
               <div className="flex flex-col items-center gap-10">
                 <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-white text-xl shadow-premium">
-                  ✨
+                  N
                 </div>
                 <div className="flex flex-col items-center gap-2">
                   <p className="text-sm font-bold tracking-tight text-primary">Adapting Surface...</p>

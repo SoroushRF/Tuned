@@ -12,6 +12,16 @@ interface PodcastAudioResponse {
   channels: number;
   speakerVoiceMap: Record<string, string>;
   segmentCount: number;
+  wasShortened?: boolean;
+}
+
+export interface PodcastSentence {
+  speaker: 'A' | 'B';
+  text: string;
+  segmentIndex: number;
+  sentenceIndex: number;
+  startFraction: number;
+  endFraction: number;
 }
 
 const EMPTY_STATUS: PodcastPlaybackStatus = 'idle';
@@ -25,7 +35,107 @@ function base64ToUint8Array(base64: string) {
   return bytes;
 }
 
+function splitIntoSentences(text: string) {
+  const matches = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g);
+  return (matches || [])
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+}
+
+function buildSentenceTimeline(script: PodcastScript) {
+  const sentences: Array<Omit<PodcastSentence, 'startFraction' | 'endFraction'>> & {
+    text: string;
+  }[] = [];
+
+  script.segments.forEach((segment, segmentIndex) => {
+    const parts = splitIntoSentences(segment.text);
+    if (parts.length === 0) {
+      sentences.push({
+        speaker: segment.speaker,
+        text: segment.text.trim(),
+        segmentIndex,
+        sentenceIndex: 0,
+      });
+      return;
+    }
+
+    parts.forEach((sentence, sentenceIndex) => {
+      sentences.push({
+        speaker: segment.speaker,
+        text: sentence,
+        segmentIndex,
+        sentenceIndex,
+      });
+    });
+  });
+
+  const weights = sentences.map((sentence) => Math.max(sentence.text.trim().length, 1));
+  const total = weights.reduce((sum, weight) => sum + weight, 0);
+  if (total === 0 || sentences.length === 0) {
+    return [];
+  }
+
+  let cumulative = 0;
+  return sentences.map((sentence, index) => {
+    const startFraction = cumulative / total;
+    cumulative += weights[index];
+    const endFraction = cumulative / total;
+    return {
+      speaker: sentence.speaker,
+      text: sentence.text,
+      segmentIndex: sentence.segmentIndex,
+      sentenceIndex: index,
+      startFraction,
+      endFraction,
+    };
+  });
+}
+
+function buildSegmentBoundariesFromTimeline(timeline: PodcastSentence[]) {
+  if (timeline.length === 0) return [];
+  const segmentLastFractions = new Map<number, number>();
+  timeline.forEach((entry) => {
+    segmentLastFractions.set(entry.segmentIndex, entry.endFraction);
+  });
+
+  return Array.from(segmentLastFractions.values());
+}
+
+function findSentenceIndex(fraction: number, timeline: PodcastSentence[]) {
+  if (!timeline.length) return -1;
+  for (let index = 0; index < timeline.length; index += 1) {
+    if (fraction <= timeline[index].endFraction) {
+      return index;
+    }
+  }
+  return timeline.length - 1;
+}
+
+function findSegmentIndexFromSentence(sentenceIndex: number, timeline: PodcastSentence[]) {
+  if (sentenceIndex < 0 || sentenceIndex >= timeline.length) return -1;
+  return timeline[sentenceIndex].segmentIndex;
+}
+
+function findSentenceStartFraction(sentenceIndex: number, timeline: PodcastSentence[]) {
+  if (sentenceIndex < 0 || sentenceIndex >= timeline.length) return 0;
+  return timeline[sentenceIndex].startFraction;
+}
+
+function buildSentenceLabels(script: PodcastScript) {
+  return buildSentenceTimeline(script);
+}
+
+function buildSentenceBoundaries(script: PodcastScript) {
+  return buildSentenceTimeline(script).map((entry) => entry.endFraction);
+}
+
 function buildSegmentBoundaries(script: PodcastScript) {
+  const timeline = buildSentenceTimeline(script);
+  const boundaries = buildSegmentBoundariesFromTimeline(timeline);
+  if (boundaries.length) {
+    return boundaries;
+  }
+
   const weights = script.segments.map((segment) => Math.max(segment.text.trim().length, 1));
   const total = weights.reduce((sum, weight) => sum + weight, 0);
   if (total === 0) {
@@ -78,17 +188,21 @@ async function generatePodcastAudio(script: PodcastScript, signal?: AbortSignal)
 export const usePodcast = (script?: PodcastScript) => {
   const [status, setStatus] = useState<PodcastPlaybackStatus>(EMPTY_STATUS);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(-1);
+  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(-1);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [wasShortened, setWasShortened] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const segmentBoundariesRef = useRef<number[]>([]);
+  const sentenceTimelineRef = useRef<PodcastSentence[]>([]);
   const isMountedRef = useRef(true);
   const scriptKey = useMemo(() => JSON.stringify(script?.segments ?? []), [script]);
+  const sentenceTimeline = useMemo(() => (script ? buildSentenceLabels(script) : []), [scriptKey]);
 
   const cleanupAudio = useCallback(() => {
     if (audioRef.current) {
@@ -123,10 +237,12 @@ export const usePodcast = (script?: PodcastScript) => {
     abortRef.current?.abort();
     cleanupAudio();
     setCurrentSegmentIndex(-1);
+    setCurrentSentenceIndex(-1);
     setProgress(0);
     setCurrentTime(0);
     setDuration(0);
     setError(null);
+    setWasShortened(false);
     setStatus(EMPTY_STATUS);
 
     if (!script || script.segments.length === 0) {
@@ -135,6 +251,7 @@ export const usePodcast = (script?: PodcastScript) => {
 
     const abortController = new AbortController();
     abortRef.current = abortController;
+    sentenceTimelineRef.current = sentenceTimeline;
     segmentBoundariesRef.current = buildSegmentBoundaries(script);
 
     const prepare = async () => {
@@ -145,6 +262,8 @@ export const usePodcast = (script?: PodcastScript) => {
         if (abortController.signal.aborted || !isMountedRef.current) {
           return;
         }
+
+        setWasShortened(Boolean(audioData.wasShortened));
 
         const bytes = base64ToUint8Array(audioData.audioBase64);
         const blob = new Blob([bytes], { type: audioData.mimeType || 'audio/wav' });
@@ -169,7 +288,9 @@ export const usePodcast = (script?: PodcastScript) => {
           setCurrentTime(audio.currentTime || 0);
           setDuration(duration);
           setProgress(percent);
-          setCurrentSegmentIndex(findSegmentIndex(fraction, segmentBoundariesRef.current));
+          const nextSentenceIndex = findSentenceIndex(fraction, sentenceTimelineRef.current);
+          setCurrentSentenceIndex(nextSentenceIndex);
+          setCurrentSegmentIndex(findSegmentIndexFromSentence(nextSentenceIndex, sentenceTimelineRef.current));
         };
 
         audio.onplay = () => {
@@ -191,6 +312,7 @@ export const usePodcast = (script?: PodcastScript) => {
           setProgress(100);
           setCurrentTime(audio.duration || 0);
           setDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
+          setCurrentSentenceIndex(sentenceTimelineRef.current.length - 1);
           setCurrentSegmentIndex(script.segments.length - 1);
         };
 
@@ -264,6 +386,7 @@ export const usePodcast = (script?: PodcastScript) => {
     }
     setStatus(audioRef.current ? 'idle' : EMPTY_STATUS);
     setCurrentSegmentIndex(-1);
+    setCurrentSentenceIndex(-1);
     setProgress(0);
     setCurrentTime(0);
     setError(null);
@@ -279,6 +402,7 @@ export const usePodcast = (script?: PodcastScript) => {
 
     audio.currentTime = 0;
     setCurrentSegmentIndex(-1);
+    setCurrentSentenceIndex(-1);
     setProgress(0);
     setCurrentTime(0);
     setStatus('idle');
@@ -312,7 +436,9 @@ export const usePodcast = (script?: PodcastScript) => {
     if (totalDuration > 0) {
       const fraction = nextTime / totalDuration;
       setProgress(Math.max(0, Math.min(100, fraction * 100)));
-      setCurrentSegmentIndex(findSegmentIndex(fraction, segmentBoundariesRef.current));
+      const nextSentenceIndex = findSentenceIndex(fraction, sentenceTimelineRef.current);
+      setCurrentSentenceIndex(nextSentenceIndex);
+      setCurrentSegmentIndex(findSegmentIndexFromSentence(nextSentenceIndex, sentenceTimelineRef.current));
     }
   }, [duration]);
 
@@ -320,13 +446,25 @@ export const usePodcast = (script?: PodcastScript) => {
     seekTo((audioRef.current?.currentTime || 0) + deltaSeconds);
   }, [seekTo]);
 
+  const seekToSentence = useCallback((sentenceIndex: number) => {
+    const audio = audioRef.current;
+    const timeline = sentenceTimelineRef.current;
+    if (!audio || !timeline.length || sentenceIndex < 0 || sentenceIndex >= timeline.length) return;
+
+    const startFraction = findSentenceStartFraction(sentenceIndex, timeline);
+    seekTo(startFraction * (duration || audio.duration || 0));
+  }, [duration, seekTo]);
+
   return {
     status,
     currentSegmentIndex,
+    currentSentenceIndex,
     progress,
     currentTime,
     duration,
     error,
+    wasShortened,
+    sentenceTimeline,
     play,
     pause,
     togglePlayback,
@@ -334,5 +472,6 @@ export const usePodcast = (script?: PodcastScript) => {
     stop,
     seekTo,
     skipBy,
+    seekToSentence,
   };
 };

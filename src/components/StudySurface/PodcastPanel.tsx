@@ -12,20 +12,24 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
   const {
     status,
     currentSegmentIndex,
-    progress,
+    currentSentenceIndex,
     currentTime,
     duration,
     error,
+    wasShortened,
+    sentenceTimeline,
     togglePlayback,
     restart,
     stop,
     seekTo,
     skipBy,
+    seekToSentence,
   } = usePodcast(script);
 
   const hasTranscript = script.segments.length > 0;
   const isPlaying = status === 'playing';
   const isLoading = status === 'loading';
+  const isShortened = Boolean(script.isShortened || wasShortened);
 
   const statusLabel = (() => {
     switch (status) {
@@ -65,6 +69,11 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
           <p className="text-sm text-muted-foreground/70 leading-relaxed">
             Gemini turns the transcript into a real two-voice audio segment.
           </p>
+          {isShortened && (
+            <div className="inline-flex rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] text-amber-700 dark:text-amber-300">
+              Shortened for quick playback
+            </div>
+          )}
         </div>
 
         <div className="rounded-[2rem] border border-border/30 bg-card/70 p-6 space-y-5 shadow-sm">
@@ -157,9 +166,14 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
             Current Segment
           </p>
           <p className="text-sm font-semibold text-foreground">
+            {currentSentenceIndex >= 0
+              ? `Sentence ${currentSentenceIndex + 1} of ${sentenceTimeline.length}`
+              : 'Not playing'}
+          </p>
+          <p className="text-sm text-muted-foreground/70">
             {currentSegmentIndex >= 0
               ? `Segment ${currentSegmentIndex + 1} of ${script.segments.length}`
-              : 'Not playing'}
+              : 'No segment selected'}
           </p>
           <p className="text-sm text-muted-foreground/70">
             {status === 'error'
@@ -171,17 +185,20 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
 
       <section className="flex-1 p-14 overflow-y-auto custom-scrollbar bg-card/5">
         <div className="max-w-2xl mx-auto space-y-12 py-10">
-          {script.segments.map((segment, i) => (
+          {script.segments.map((segment, segmentIndex) => {
+            const segmentSentences = sentenceTimeline.filter(
+              (sentence) => sentence.segmentIndex === segmentIndex
+            );
+            const segmentIsActive = currentSegmentIndex === segmentIndex;
+
+            return (
             <article
-              key={i}
+              key={segmentIndex}
               className={`group flex flex-col gap-6 p-10 rounded-[2rem] border transition-all duration-300 ${
-                currentSegmentIndex === i
+                segmentIsActive
                   ? 'bg-card border-primary/20 shadow-md'
                   : 'bg-secondary/10 border-transparent opacity-50 group-hover:opacity-90'
               }`}
-              onClick={() => seekTo(
-                duration > 0 ? Math.max(0, Math.min(duration, (duration / script.segments.length) * i)) : 0
-              )}
             >
               <div className="flex items-center gap-4">
                 <div
@@ -197,15 +214,43 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
                   Speaker {segment.speaker}
                 </span>
               </div>
-              <p
-                className={`text-lg font-medium leading-relaxed tracking-tight ${
-                  currentSegmentIndex === i ? 'text-foreground' : 'text-muted-foreground'
-                }`}
-              >
-                {segment.text}
-              </p>
+              <div className="space-y-3">
+                {segmentSentences.length > 0 ? segmentSentences.map((sentence) => {
+                  const isSentenceActive = currentSentenceIndex === sentence.sentenceIndex;
+                  return (
+                    <button
+                      key={sentence.sentenceIndex}
+                      onClick={() => seekToSentence(sentence.sentenceIndex)}
+                      disabled={duration <= 0 || isLoading}
+                      className={`w-full text-left rounded-2xl border px-4 py-3 transition-all duration-300 ${
+                        isSentenceActive
+                          ? 'bg-primary/10 border-primary/25 text-foreground shadow-sm'
+                          : 'bg-background/50 border-transparent text-muted-foreground hover:bg-secondary/30 hover:text-foreground'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      <span className="block text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/50 mb-2">
+                        Sentence {sentence.sentenceIndex + 1}
+                      </span>
+                      <span className="text-lg font-medium leading-relaxed tracking-tight">
+                        {sentence.text}
+                      </span>
+                    </button>
+                  );
+                }) : (
+                  <button
+                    onClick={() => seekToSentence(segmentIndex)}
+                    disabled={duration <= 0 || isLoading}
+                    className="w-full text-left rounded-2xl border px-4 py-3 bg-background/50 border-transparent text-muted-foreground hover:bg-secondary/30 hover:text-foreground transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="text-lg font-medium leading-relaxed tracking-tight">
+                      {segment.text}
+                    </span>
+                  </button>
+                )}
+              </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>
