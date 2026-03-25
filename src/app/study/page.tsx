@@ -34,6 +34,13 @@ export default function StudyPage() {
     dispatch({ type: 'SET_THEME', payload: isDark ? 'light' : 'dark' });
   };
 
+  // Jump to workspace when session is ready
+  React.useEffect(() => {
+    if (currentSession) {
+      setActiveTab('workspace');
+    }
+  }, [currentSession]);
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-400">
       {/* Premium Header */}
