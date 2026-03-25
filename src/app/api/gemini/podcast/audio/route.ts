@@ -92,7 +92,17 @@ export async function POST(req: NextRequest) {
   const requestId = createGeminiDebugId('podcast_audio');
   const startedAt = Date.now();
   try {
-    const { script } = (await req.json()) as { script?: PodcastScript };
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid JSON body. Expected { script }.' },
+        { status: 400 }
+      );
+    }
+
+    const { script } = body as { script?: PodcastScript };
 
     if (!script || !Array.isArray(script.segments) || script.segments.length === 0) {
       return NextResponse.json({ error: 'Podcast transcript is required.' }, { status: 400 });
@@ -125,42 +135,54 @@ export async function POST(req: NextRequest) {
       transcriptPreview: summarizeText(transcript, 500),
     });
 
-    const response = await ai.models.generateContent({
-      model: AUDIO_MODEL,
-      contents: [{
-        parts: [{
-          text: [
-            'Read this as a calm, NotebookLM-style academic podcast.',
-            'Keep the transcript order exactly as written.',
-            'Do not summarize, add commentary, or skip lines.',
-            'Speaker A and Speaker B should sound distinct and balanced.',
-            '',
-            transcript,
-          ].join('\n'),
+    const generatePodcastAudio = async (useMultiSpeakerVoices: boolean) => {
+      return ai.models.generateContent({
+        model: AUDIO_MODEL,
+        contents: [{
+          parts: [{
+            text: [
+              'Read this as a calm, NotebookLM-style academic podcast.',
+              'Keep the transcript order exactly as written.',
+              'Do not summarize, add commentary, or skip lines.',
+              useMultiSpeakerVoices
+                ? 'Speaker A and Speaker B should sound distinct and balanced.'
+                : 'Read the transcript naturally.',
+              '',
+              transcript,
+            ].join('\n'),
+          }],
         }],
-      }],
-      config: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          multiSpeakerVoiceConfig: {
-            speakerVoiceConfigs: [
-              {
-                speaker: 'A',
-                voiceConfig: {
-                  prebuiltVoiceConfig: { voiceName: 'Charon' },
+        config: {
+          responseModalities: ['AUDIO'],
+          ...(useMultiSpeakerVoices
+            ? {
+                speechConfig: {
+                  multiSpeakerVoiceConfig: {
+                    speakerVoiceConfigs: [
+                      {
+                        speaker: 'A',
+                        voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } },
+                      },
+                      {
+                        speaker: 'B',
+                        voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Rasalgethi' } },
+                      },
+                    ],
+                  },
                 },
-              },
-              {
-                speaker: 'B',
-                voiceConfig: {
-                  prebuiltVoiceConfig: { voiceName: 'Rasalgethi' },
-                },
-              },
-            ],
-          },
+              }
+            : {}),
         },
-      },
-    });
+      });
+    };
+
+    let response;
+    try {
+      response = await generatePodcastAudio(true);
+    } catch {
+      // If voice config causes internal errors, retry with default (single) voices.
+      response = await generatePodcastAudio(false);
+    }
 
     const audioBase64 = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
 
