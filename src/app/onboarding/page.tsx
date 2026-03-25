@@ -78,7 +78,7 @@ export default function OnboardingPage() {
            </div>
 
            <div className="space-y-4">
-              <h2 className="text-4xl font-black tracking-tightest leading-tight">Neural Syncing</h2>
+              <h2 className="text-4xl font-black tracking-tightest leading-tight dark:text-white">Neural Syncing</h2>
               <p className="text-muted-foreground font-bold tracking-widest text-[10px] opacity-40">Calibrating your profile</p>
            </div>
  
@@ -102,7 +102,7 @@ export default function OnboardingPage() {
               ✨
            </div>
            <div className="space-y-2">
-              <h2 className="text-5xl font-black tracking-tightest">Profile Matrix Active</h2>
+              <h2 className="text-5xl font-black tracking-tightest dark:text-white">Profile Matrix Active</h2>
               <p className="text-xl font-bold text-muted-foreground opacity-60">Landing in Workspace...</p>
            </div>
         </div>
