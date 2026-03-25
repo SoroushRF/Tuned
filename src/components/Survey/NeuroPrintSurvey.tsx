@@ -123,7 +123,7 @@ export default function NeuroPrintSurvey({ onComplete }: NeuroPrintSurveyProps) 
 
         {/* Question Header */}
         <div className="text-center space-y-4">
-           <h2 className="text-4xl md:text-5xl font-black tracking-tightest leading-tight max-w-2xl bg-gradient-to-br from-foreground to-foreground/50 bg-clip-text text-transparent uppercase">
+           <h2 className="text-4xl md:text-5xl font-black tracking-tightest leading-tight max-w-2xl bg-gradient-to-br from-foreground to-foreground/50 bg-clip-text text-transparent">
              {questions[currentStep].text}
            </h2>
         </div>
@@ -134,14 +134,14 @@ export default function NeuroPrintSurvey({ onComplete }: NeuroPrintSurveyProps) 
              <button
                key={i}
                onClick={() => handleSelect(option.value)}
-               className="group flex flex-col items-center text-center gap-10 p-14 rounded-[4rem] bg-secondary/50 border-2 border-transparent hover:border-primary hover:bg-card transition-all duration-500 hover:scale-[1.05] active:scale-95 shadow-xl shadow-foreground/5 relative overflow-hidden"
+               className="group flex flex-col items-center text-center gap-10 p-14 rounded-[4rem] bg-foreground dark:bg-card border-2 border-transparent hover:border-primary hover:bg-card transition-all duration-500 hover:scale-[1.05] active:scale-95 shadow-xl shadow-foreground/5 relative overflow-hidden"
              >
                 <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 <div className="w-24 h-24 rounded-[2.5rem] bg-card border border-border flex items-center justify-center text-5xl shadow-inner group-hover:rotate-12 transition-transform duration-500 relative z-10">
                    {option.icon}
                 </div>
                 <div className="space-y-4 relative z-10">
-                   <p className="text-xl font-black leading-tight tracking-tight uppercase group-hover:text-primary transition-colors">
+                   <p className="text-xl font-black leading-tight tracking-tight text-background dark:text-foreground group-hover:text-primary transition-colors">
                      {option.label}
                    </p>
                 </div>
@@ -159,7 +159,7 @@ export default function NeuroPrintSurvey({ onComplete }: NeuroPrintSurveyProps) 
                 </div>
               ))}
            </div>
-           <span className="text-[9px] font-black uppercase tracking-[0.4em]">Optimizing Strategy Core...</span>
+           <span className="text-[9px] font-black tracking-[0.4em]">Optimizing Strategy Core...</span>
         </div>
       </div>
     </div>

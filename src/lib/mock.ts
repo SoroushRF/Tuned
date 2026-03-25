@@ -121,8 +121,8 @@ export const mockProcessedOutput: ProcessedOutput = {
  */
 export const initialAppState: AppState = {
   neuroPrint: mockNeuroPrint,
-  currentSession: mockProcessedOutput,
+  currentSession: undefined,
   isLoading: false,
-  streak: 5,
+  streak: 0,
   theme: 'dark'
 };

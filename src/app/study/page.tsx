@@ -28,7 +28,7 @@ export default function StudyPage() {
   const { neuroPrint, currentSession, isLoading, theme, streak } = state;
   const isDark = theme === 'dark';
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'workspace' | 'upload'>('workspace');
+  const [activeTab, setActiveTab] = useState<'workspace' | 'upload'>(currentSession ? 'workspace' : 'upload');
 
   const toggleTheme = () => {
     dispatch({ type: 'SET_THEME', payload: isDark ? 'light' : 'dark' });
@@ -42,12 +42,12 @@ export default function StudyPage() {
         <div className="flex items-center gap-10">
           <Link href="/" className="flex items-center gap-3 group transition-transform hover:scale-105 active:scale-95">
             <div className="w-10 h-10 rounded-2xl bg-foreground text-background flex items-center justify-center text-xl shadow-2xl animate-float">✨</div>
-            <span className="text-2xl font-black tracking-tightest uppercase text-foreground">Nuro</span>
+            <span className="text-2xl font-black tracking-tightest text-foreground">Nuro</span>
           </Link>
           <nav className="flex items-center gap-6">
             <button 
               onClick={() => setActiveTab('workspace')}
-              className={`px-5 py-2.5 rounded-full text-[10px] font-black tracking-[0.3em] flex items-center gap-3 uppercase transition-all duration-500 ${
+              className={`px-5 py-2.5 rounded-full text-[10px] font-black tracking-[0.3em] flex items-center gap-3 transition-all duration-500 ${
                 activeTab === 'workspace' 
                   ? 'bg-foreground text-background shadow-2xl shadow-foreground/20' 
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
@@ -57,7 +57,7 @@ export default function StudyPage() {
             </button>
             <button 
               onClick={() => setActiveTab('upload')}
-              className={`px-5 py-2.5 rounded-full text-[10px] font-black tracking-[0.3em] flex items-center gap-3 uppercase transition-all duration-500 ${
+              className={`px-5 py-2.5 rounded-full text-[10px] font-black tracking-[0.3em] flex items-center gap-3 transition-all duration-500 ${
                 activeTab === 'upload' 
                   ? 'bg-foreground text-background shadow-2xl shadow-foreground/20' 
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
@@ -71,7 +71,7 @@ export default function StudyPage() {
         <div className="flex items-center gap-6">
           <div className="hidden md:flex items-center gap-3 px-6 py-2.5 rounded-full bg-secondary/60 border border-border/80 shadow-inner">
              <span className="w-2 h-2 rounded-full bg-primary/60 animate-pulse" />
-             <span className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/40">Syncing Matrix</span>
+             <span className="text-[9px] font-black tracking-[0.4em] text-muted-foreground/40">Syncing Matrix</span>
           </div>
 
           <button 
@@ -98,10 +98,10 @@ export default function StudyPage() {
           <div className="animate-in fade-in slide-in-from-left-6 duration-1000">
             <div className="flex items-center justify-between mb-12">
                <div className="space-y-1">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Your NeuroPrint</h3>
+                  <h3 className="text-[10px] font-black tracking-[0.3em] text-primary">Your NeuroPrint</h3>
                   <button 
                     onClick={() => setIsProfileOpen(true)}
-                    className="text-[10px] font-bold underline text-primary/40 hover:text-primary transition-colors uppercase tracking-[0.2em]"
+                    className="text-[10px] font-bold underline text-primary/40 hover:text-primary transition-colors tracking-[0.2em]"
                   >
                     View Brain Map
                   </button>
@@ -121,7 +121,7 @@ export default function StudyPage() {
                   <div className="flex justify-between items-end mb-4 px-1">
                     <div className="flex items-center gap-3">
                        <span className="text-lg opacity-40 group-hover:opacity-100 transition-opacity">{item.icon}</span>
-                       <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground group-hover:text-primary transition-colors">{item.label}</span>
+                       <span className="text-[10px] font-black tracking-[0.3em] text-muted-foreground group-hover:text-primary transition-colors">{item.label}</span>
                     </div>
                     <span className="text-xs font-black text-primary">{Math.round(item.value * 100)}%</span>
                   </div>
@@ -139,7 +139,7 @@ export default function StudyPage() {
           <div className="mt-auto p-10 rounded-[2.5rem] bg-indigo-500/5 border border-primary/20 relative overflow-hidden group">
             <div className="flex items-center gap-3 mb-4">
                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-               <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Nuro Observation</h4>
+               <h4 className="text-[10px] font-black tracking-[0.3em] text-primary">Nuro Observation</h4>
             </div>
             <p className="text-xs text-muted-foreground font-bold leading-relaxed tracking-tight relative z-10">
               We've noticed you focus better with audio synthesis. Your current surface is optimized for listening.
@@ -155,10 +155,10 @@ export default function StudyPage() {
                 <div className="w-16 h-16 rounded-[2rem] bg-primary flex items-center justify-center text-white text-2xl shadow-2xl animate-bounce">
                   ✨
                 </div>
-                <div className="flex flex-col items-center gap-2">
-                   <p className="text-sm font-black uppercase tracking-[0.4em] text-primary">Adapting Surface...</p>
-                   <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground opacity-40">GEMINI 1.5 ACTIVE</p>
-                </div>
+                 <div className="flex flex-col items-center gap-2">
+                    <p className="text-sm font-black tracking-[0.4em] text-primary">Adapting Surface...</p>
+                    <p className="text-[10px] font-bold tracking-[0.4em] text-muted-foreground opacity-40">GEMINI 1.5 ACTIVE</p>
+                 </div>
               </div>
             </div>
           )}

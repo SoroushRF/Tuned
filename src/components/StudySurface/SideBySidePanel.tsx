@@ -26,7 +26,7 @@ export default function SideBySidePanel({ content }: SideBySidePanelProps) {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 px-4">
         <div className="space-y-3">
            <h3 className="text-4xl font-black tracking-tightest uppercase">Scholar Logic</h3>
-           <p className="text-[11px] font-black uppercase tracking-[0.4em] text-primary/60">Semantic Content Alignment Engine</p>
+           <p className="text-[11px] font-black uppercase tracking-[0.4em] text-primary/80">Semantic Content Alignment Engine</p>
         </div>
         <div className="flex bg-secondary/60 border border-border/80 rounded-3xl p-1.5 shadow-xl backdrop-blur-3xl">
           <button className="px-8 py-3 rounded-2xl text-xs font-black bg-foreground text-background shadow-2xl uppercase tracking-[0.25em]">Split View</button>
@@ -37,18 +37,18 @@ export default function SideBySidePanel({ content }: SideBySidePanelProps) {
       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-12 min-h-0">
         {/* Academic Source */}
         <div className="flex flex-col gap-10 min-h-0">
-          <div className="flex items-center gap-5 px-6 font-black text-muted-foreground/30 text-[11px] uppercase tracking-[0.5em]">
+          <div className="flex items-center gap-5 px-6 font-black text-muted-foreground/60 text-[11px] uppercase tracking-[0.5em]">
              <IconBookOpen />
              <span>Reference Material</span>
           </div>
-          <div className="flex-1 p-14 rounded-[3.5rem] bg-secondary/30 border border-border/60 text-muted-foreground/60 text-lg leading-[1.6] overflow-y-auto custom-scrollbar font-bold selection:bg-foreground/10 shadow-inner">
+          <div className="flex-1 p-14 rounded-[3.5rem] bg-secondary/30 border border-border/60 text-foreground/80 text-lg leading-[1.6] overflow-y-auto custom-scrollbar font-bold selection:bg-foreground/10 shadow-inner">
             {content.originalText}
           </div>
         </div>
 
         {/* Simply Nuro */}
         <div className="flex flex-col gap-10 min-h-0 relative">
-          <div className="flex items-center gap-5 px-6 font-black text-primary/40 text-[11px] uppercase tracking-[0.5em] animate-pulse">
+          <div className="flex items-center gap-5 px-6 font-black text-primary/80 text-[11px] uppercase tracking-[0.5em] animate-pulse">
              <IconZap />
              <span>Neural Optimized Content</span>
           </div>
@@ -72,10 +72,10 @@ export default function SideBySidePanel({ content }: SideBySidePanelProps) {
                            <div className="w-3 h-3 rounded-full bg-primary" />
                            <h5 className="text-[11px] font-black uppercase tracking-[0.4em]">{term.term}</h5>
                         </div>
-                        <p className="text-base text-background/80 leading-relaxed mb-8 font-bold">{term.definition}</p>
+                        <p className="text-base text-background leading-relaxed mb-8 font-bold">{term.definition}</p>
                         <div className="pt-8 border-t border-background/20 space-y-5">
                           <span className="text-[10px] font-black text-primary uppercase tracking-[0.5em]">Neural Insight</span>
-                          <p className="text-xs text-background/60 font-bold leading-relaxed">{term.examRelevance}</p>
+                          <p className="text-xs text-background/80 font-bold leading-relaxed">{term.examRelevance}</p>
                         </div>
                         <div className="absolute top-full left-1/2 -translate-x-1/2 border-[20px] border-transparent border-t-foreground" />
                       </div>
