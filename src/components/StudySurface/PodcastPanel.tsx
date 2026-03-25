@@ -13,10 +13,14 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
     status,
     currentSegmentIndex,
     progress,
+    currentTime,
+    duration,
     error,
     togglePlayback,
     restart,
     stop,
+    seekTo,
+    skipBy,
   } = usePodcast(script);
 
   const hasTranscript = script.segments.length > 0;
@@ -39,6 +43,14 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
         return 'Ready';
     }
   })();
+
+  const formatTime = (seconds: number) => {
+    if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+    const whole = Math.floor(seconds);
+    const mins = Math.floor(whole / 60);
+    const secs = whole % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="flex flex-col lg:flex-row h-full animate-fade-in-up">
@@ -63,16 +75,27 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
                 {statusLabel}
               </span>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
-              {Math.round(progress)}%
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 tabular-nums">
+              {formatTime(currentTime)} / {formatTime(duration)}
             </span>
           </div>
 
-          <div className="h-1.5 w-full rounded-full bg-secondary/50 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-primary transition-all duration-300"
-              style={{ width: `${progress}%` }}
+          <div className="space-y-3">
+            <input
+              type="range"
+              min={0}
+              max={Math.max(duration, 0)}
+              step={0.1}
+              value={Math.min(currentTime, duration || currentTime)}
+              onChange={(event) => seekTo(Number(event.target.value))}
+              disabled={!hasTranscript || isLoading || duration <= 0}
+              aria-label="Podcast scrubber"
+              className="w-full accent-primary disabled:opacity-40 disabled:cursor-not-allowed"
             />
+            <div className="flex items-center justify-between gap-3 text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/40">
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -96,6 +119,23 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
               className="rounded-2xl border border-border/40 bg-card px-4 py-4 text-sm font-bold text-foreground/80 hover:bg-secondary/30 active:translate-y-[1px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Stop
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => skipBy(-10)}
+              disabled={!hasTranscript || isLoading || duration <= 0}
+              className="flex-1 rounded-2xl border border-border/40 bg-card px-4 py-3 text-xs font-bold uppercase tracking-[0.25em] text-foreground/75 hover:bg-secondary/30 active:translate-y-[1px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              -10s
+            </button>
+            <button
+              onClick={() => skipBy(10)}
+              disabled={!hasTranscript || isLoading || duration <= 0}
+              className="flex-1 rounded-2xl border border-border/40 bg-card px-4 py-3 text-xs font-bold uppercase tracking-[0.25em] text-foreground/75 hover:bg-secondary/30 active:translate-y-[1px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              +10s
             </button>
           </div>
 
@@ -139,6 +179,9 @@ export default function PodcastPanel({ script }: PodcastPanelProps) {
                   ? 'bg-card border-primary/20 shadow-md'
                   : 'bg-secondary/10 border-transparent opacity-50 group-hover:opacity-90'
               }`}
+              onClick={() => seekTo(
+                duration > 0 ? Math.max(0, Math.min(duration, (duration / script.segments.length) * i)) : 0
+              )}
             >
               <div className="flex items-center gap-4">
                 <div

@@ -79,6 +79,8 @@ export const usePodcast = (script?: PodcastScript) => {
   const [status, setStatus] = useState<PodcastPlaybackStatus>(EMPTY_STATUS);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(-1);
   const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -122,6 +124,8 @@ export const usePodcast = (script?: PodcastScript) => {
     cleanupAudio();
     setCurrentSegmentIndex(-1);
     setProgress(0);
+    setCurrentTime(0);
+    setDuration(0);
     setError(null);
     setStatus(EMPTY_STATUS);
 
@@ -150,6 +154,8 @@ export const usePodcast = (script?: PodcastScript) => {
 
         audio.onloadedmetadata = () => {
           if (!isMountedRef.current) return;
+          setDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
+          setCurrentTime(audio.currentTime || 0);
           setStatus('idle');
           setProgress(0);
           setCurrentSegmentIndex(-1);
@@ -160,6 +166,8 @@ export const usePodcast = (script?: PodcastScript) => {
           const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
           const fraction = duration > 0 ? audio.currentTime / duration : 0;
           const percent = Math.max(0, Math.min(100, fraction * 100));
+          setCurrentTime(audio.currentTime || 0);
+          setDuration(duration);
           setProgress(percent);
           setCurrentSegmentIndex(findSegmentIndex(fraction, segmentBoundariesRef.current));
         };
@@ -181,6 +189,8 @@ export const usePodcast = (script?: PodcastScript) => {
           if (!isMountedRef.current) return;
           setStatus('finished');
           setProgress(100);
+          setCurrentTime(audio.duration || 0);
+          setDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
           setCurrentSegmentIndex(script.segments.length - 1);
         };
 
@@ -255,6 +265,7 @@ export const usePodcast = (script?: PodcastScript) => {
     setStatus(audioRef.current ? 'idle' : EMPTY_STATUS);
     setCurrentSegmentIndex(-1);
     setProgress(0);
+    setCurrentTime(0);
     setError(null);
   }, []);
 
@@ -269,6 +280,7 @@ export const usePodcast = (script?: PodcastScript) => {
     audio.currentTime = 0;
     setCurrentSegmentIndex(-1);
     setProgress(0);
+    setCurrentTime(0);
     setStatus('idle');
 
     try {
@@ -288,15 +300,39 @@ export const usePodcast = (script?: PodcastScript) => {
     void play();
   }, [pause, play, status]);
 
+  const seekTo = useCallback((seconds: number) => {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(seconds)) return;
+
+    const nextTime = Math.max(0, Math.min(duration || audio.duration || 0, seconds));
+    audio.currentTime = nextTime;
+    setCurrentTime(nextTime);
+
+    const totalDuration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : duration;
+    if (totalDuration > 0) {
+      const fraction = nextTime / totalDuration;
+      setProgress(Math.max(0, Math.min(100, fraction * 100)));
+      setCurrentSegmentIndex(findSegmentIndex(fraction, segmentBoundariesRef.current));
+    }
+  }, [duration]);
+
+  const skipBy = useCallback((deltaSeconds: number) => {
+    seekTo((audioRef.current?.currentTime || 0) + deltaSeconds);
+  }, [seekTo]);
+
   return {
     status,
     currentSegmentIndex,
     progress,
+    currentTime,
+    duration,
     error,
     play,
     pause,
     togglePlayback,
     restart,
     stop,
+    seekTo,
+    skipBy,
   };
 };
