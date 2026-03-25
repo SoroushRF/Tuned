@@ -59,8 +59,6 @@ export default function SprintPanel({ cards }: SprintPanelProps) {
     stage,
     showChallenge,
     showRescue,
-    streak,
-    bestStreak,
     milestoneMessage,
     timerEnabled,
     isTimerRunning,
@@ -470,25 +468,7 @@ export default function SprintPanel({ cards }: SprintPanelProps) {
             </p>
           </div>
 
-          <div className="rounded-[1.5rem] border border-border/20 bg-background p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-muted-foreground/55">Momentum</p>
-            <p className="mt-2 text-2xl font-black tracking-tightest">{streak > 0 ? `Streak ${streak}` : 'Steady'}</p>
-            <p className="mt-1 text-sm font-medium leading-relaxed text-muted-foreground">
-              {bestStreak > 0 ? `Best run ${bestStreak}` : 'One concept, one step.'}
-            </p>
-          </div>
-
-          <div className="rounded-[1.5rem] border border-border/20 bg-background p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-muted-foreground/55">Clue type</p>
-            <p className="mt-2 text-sm font-semibold leading-relaxed text-foreground/80">
-              {currentCard.diagramPrompt ? 'Text + diagram cue' : 'Text only'}
-            </p>
-            {currentCard.diagramPrompt && (
-              <p className="mt-2 text-xs font-black uppercase tracking-[0.25em] text-primary/55">
-                {currentCard.diagramPrompt}
-              </p>
-            )}
-          </div>
+          {/* Decluttered: removed extra momentum + clue type meta cards */}
 
           {(showTimerPrompt || timerEnabled) && (
             <div className="rounded-[1.5rem] border border-primary/10 bg-primary/[0.03] p-4">

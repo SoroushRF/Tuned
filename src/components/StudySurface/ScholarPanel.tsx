@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScholarContent } from '@/types';
 import { useScholar } from '@/hooks/useScholar';
 
@@ -41,7 +41,7 @@ function highlightText(
   text: string,
   terms: string[],
   activeTerm: string | null,
-  onPickTerm: (term: string) => void,
+  onPickTerm: (term: string, anchorEl: HTMLElement) => void,
 ) {
   const cleanedTerms = uniqueStrings(terms).sort((a, b) => b.length - a.length);
   if (cleanedTerms.length === 0 || !text.trim()) {
@@ -62,7 +62,8 @@ function highlightText(
       <button
         key={`${index}-${part}`}
         type="button"
-        onClick={() => onPickTerm(match)}
+        data-definition-term-button="true"
+        onClick={(e) => onPickTerm(match, e.currentTarget)}
         className={[
           'inline rounded-md border px-1.5 py-0.5 align-baseline text-left font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           isActive
@@ -78,8 +79,32 @@ function highlightText(
 
 export default function ScholarPanel({ content }: ScholarPanelProps) {
   const scholar = useScholar(content);
-
   const activeChunk = scholar.activeChunk;
+
+  const [definitionAnchorRect, setDefinitionAnchorRect] = useState<DOMRect | null>(null);
+  const definitionCardRef = useRef<HTMLDivElement | null>(null);
+
+  const activeTermMeta = useMemo(() => {
+    if (!scholar.activeTerm) return null;
+    const lower = scholar.activeTerm.toLowerCase();
+    return [
+      ...content.keyTerms,
+      ...(activeChunk?.keyTerms || []),
+    ].find((term) => term.term.toLowerCase() === lower) || null;
+  }, [activeChunk?.keyTerms, content.keyTerms, scholar.activeTerm]);
+
+  const handlePickTerm = useCallback((term: string, anchorEl: HTMLElement) => {
+    if (scholar.activeTerm?.toLowerCase() === term.toLowerCase()) {
+      // Toggle off on repeated click.
+      setDefinitionAnchorRect(null);
+      scholar.selectTerm(null);
+      return;
+    }
+
+    const rect = anchorEl.getBoundingClientRect();
+    setDefinitionAnchorRect(rect);
+    scholar.selectTerm(term);
+  }, [scholar]);
   const sourceTerms = useMemo(() => {
     return uniqueStrings([
       ...scholar.keyTerms,
@@ -90,13 +115,13 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
 
   const displayedOriginal = useMemo(() => {
     const text = limitTextByDepth(activeChunk.originalText, scholar.readingDepth);
-    return highlightText(text, sourceTerms, scholar.activeTerm, scholar.selectTerm);
-  }, [activeChunk.originalText, scholar.activeTerm, scholar.readingDepth, scholar.selectTerm, sourceTerms]);
+    return highlightText(text, sourceTerms, scholar.activeTerm, handlePickTerm);
+  }, [activeChunk.originalText, scholar.activeTerm, scholar.readingDepth, handlePickTerm, sourceTerms]);
 
   const displayedSimplified = useMemo(() => {
     const text = limitTextByDepth(activeChunk.simplifiedText, scholar.readingDepth);
-    return highlightText(text, sourceTerms, scholar.activeTerm, scholar.selectTerm);
-  }, [activeChunk.simplifiedText, scholar.activeTerm, scholar.readingDepth, scholar.selectTerm, sourceTerms]);
+    return highlightText(text, sourceTerms, scholar.activeTerm, handlePickTerm);
+  }, [activeChunk.simplifiedText, scholar.activeTerm, scholar.readingDepth, handlePickTerm, sourceTerms]);
 
   const topKeyTerms = useMemo(() => {
     return [...content.keyTerms]
@@ -140,6 +165,7 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
       if (key === 'escape') {
         event.preventDefault();
         scholar.selectTerm(null);
+        setDefinitionAnchorRect(null);
         return;
       }
 
@@ -172,9 +198,62 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
     sourceTerms,
   ]);
 
+  useEffect(() => {
+    if (!scholar.activeTerm) {
+      setDefinitionAnchorRect(null);
+      return;
+    }
+
+    if (!definitionAnchorRect) return;
+
+    const onMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      if (definitionCardRef.current?.contains(target)) return;
+      if (target.closest('[data-definition-term-button="true"]')) return;
+
+      scholar.selectTerm(null);
+      setDefinitionAnchorRect(null);
+    };
+
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [definitionAnchorRect, scholar, scholar.activeTerm, scholar.selectTerm]);
+
   return (
     <div className="flex h-full flex-col gap-8 animate-fade-in-up duration-1000 max-w-7xl mx-auto py-10 px-6 md:px-10">
       <p className="sr-only" aria-live="polite">{statusMessage}</p>
+
+      {scholar.activeTerm && definitionAnchorRect && activeTermMeta && (
+        <div
+          ref={definitionCardRef}
+          className="fixed z-[100] max-w-[320px] rounded-[1rem] border border-border/40 bg-background/95 backdrop-blur-xl p-4 shadow-[0_30px_80px_rgba(0,0,0,0.25)]"
+          style={{
+            left: Math.max(12, definitionAnchorRect.left),
+            top: definitionAnchorRect.bottom + 10,
+          }}
+          role="dialog"
+          aria-label="Term definition"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/55">
+                Definition
+              </p>
+              <p className="text-lg font-black tracking-tightest text-foreground">
+                {scholar.activeTerm}
+              </p>
+            </div>
+          </div>
+          <p className="mt-2 text-sm font-medium leading-relaxed text-foreground/90">
+            {activeTermMeta.definition}
+          </p>
+          <p className="mt-2 text-xs font-semibold leading-relaxed text-primary/70">
+            {activeTermMeta.examRelevance}
+          </p>
+        </div>
+      )}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="space-y-3">
           <p className="text-[10px] font-black uppercase tracking-[0.55em] text-primary/55">Scholar Mode</p>

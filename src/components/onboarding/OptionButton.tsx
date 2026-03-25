@@ -37,15 +37,12 @@ export default function OptionButton({ option, isSelected, onClick }: OptionButt
           )}
         </div>
 
-        <div className="flex flex-col items-start gap-0.5">
+        <div className="flex flex-col items-start justify-center gap-0">
           <span className={cn(
             "text-lg font-bold tracking-tight transition-all duration-300",
             isSelected ? "text-foreground" : "text-foreground/80 group-hover:text-foreground"
           )}>
             {option.label}
-          </span>
-          <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-            {isSelected ? 'Calibrated' : 'Select Alignment'}
           </span>
         </div>
       </div>
