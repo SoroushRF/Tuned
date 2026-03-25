@@ -2,7 +2,17 @@
 
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { AppState, NeuroPrintVector, ProcessedOutput } from '@/types';
-import { initialAppState } from '@/lib/mock';
+import { initialAppState, mockAudioLearner, mockADHDLearner } from '@/lib/mock';
+
+/**
+ * MOCK TOGGLE (Change this to switch learner types)
+ */
+const CURRENT_VECTOR = mockAudioLearner; 
+
+const OVERRIDE_INITIAL_STATE: AppState = {
+  ...initialAppState,
+  neuroPrint: CURRENT_VECTOR
+};
 
 /**
  * Action Types
@@ -54,7 +64,7 @@ const AppContext = createContext<AppContextProps | undefined>(undefined);
  * Global App Provider
  */
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(appReducer, initialAppState);
+  const [state, dispatch] = useReducer(appReducer, OVERRIDE_INITIAL_STATE);
 
   // Sync theme with HTML class
   React.useEffect(() => {

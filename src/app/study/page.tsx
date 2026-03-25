@@ -146,7 +146,7 @@ export default function StudyPage() {
         </aside>
 
         {/* Dynamic Workspace */}
-        <main className="flex-1 overflow-y-auto p-16 relative custom-scrollbar">
+        <main className="flex-1 overflow-y-auto pt-2 px-12 pb-12 relative custom-scrollbar">
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-md z-[60] animate-in fade-in duration-500">
               <div className="flex flex-col items-center gap-10">

@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { SPRINT_PROMPT } from '@/prompts/sprint';
 import { SprintCard } from '@/types';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 export async function POST(req: Request) {
   try {
@@ -16,9 +15,15 @@ export async function POST(req: Request) {
 
     const filledPrompt = SPRINT_PROMPT.replace('{{CONTENT}}', content);
 
-    const result = await model.generateContent(filledPrompt);
-    const response = await result.response;
-    const text = response.text();
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash", 
+      contents: [{ role: 'user', parts: [{ text: filledPrompt }] }],
+      config: {
+        responseMimeType: "application/json"
+      }
+    });
+    
+    const text = response.text || "";
     
     const jsonMatch = text.match(/\[[\s\S]*\]/) || text.match(/\{[\s\S]*\}/);
     const cleanedJson = jsonMatch ? jsonMatch[0] : text;

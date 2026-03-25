@@ -43,18 +43,32 @@ const IconCheck = () => (
 );
 
 export default function LayoutController({ neuroPrint, session }: LayoutControllerProps) {
-  useEffect(() => {
-    const scores = [
-      { mode: 'audio', value: neuroPrint.audio },
-      { mode: 'adhd', value: neuroPrint.adhd },
-      { mode: 'scholar', value: neuroPrint.scholar },
-    ];
-    const topMode = scores.sort((a, b) => b.value - a.value)[0].mode;
-    setActiveMode(topMode);
+  const [activeMode, setActiveMode] = useState<string | 'adaptive'>('adaptive');
+  const [isSessionFinished, setIsSessionFinished] = useState(false);
+
+  // Identify high-priority modes for adaptive layout
+  const highModes = useMemo(() => {
+    const modes: string[] = [];
+    if (neuroPrint.audio > 0.6) modes.push('audio');
+    if (neuroPrint.adhd > 0.6) modes.push('adhd');
+    if (neuroPrint.scholar > 0.6) modes.push('scholar');
+    
+    // If none are > 0.6, pick the highest one
+    if (modes.length === 0) {
+      const scores = [
+        { id: 'audio', val: neuroPrint.audio },
+        { id: 'adhd', val: neuroPrint.adhd },
+        { id: 'scholar', val: neuroPrint.scholar },
+      ];
+      modes.push(scores.sort((a, b) => b.val - a.val)[0].id);
+    }
+    return modes;
   }, [neuroPrint]);
 
-  const [activeMode, setActiveMode] = useState<string>('audio');
-  const [isSessionFinished, setIsSessionFinished] = useState(false);
+  useEffect(() => {
+    // Pulse to adaptive whenever profile changes significantly
+    setActiveMode('adaptive');
+  }, [neuroPrint]);
 
   if (isSessionFinished) {
     return (
@@ -66,11 +80,45 @@ export default function LayoutController({ neuroPrint, session }: LayoutControll
     );
   }
 
+  const renderPanel = (mode: string) => {
+    switch(mode) {
+      case 'audio': return (
+        <div className="h-full border border-border/80 bg-card/10 rounded-[3rem] overflow-hidden shadow-premium">
+          <PodcastPanel script={session.podcast} />
+        </div>
+      );
+      case 'adhd': return (
+        <div className="h-full border border-border/80 bg-card/5 rounded-[3rem] p-4 flex flex-col justify-center shadow-premium">
+          <SprintCard card={session.sprintCards[0]} onComplete={() => {}} showChallenge={false} />
+        </div>
+      );
+      case 'scholar': return (
+        <div className="h-full border border-border/80 bg-card/20 rounded-[3rem] p-4 overflow-hidden shadow-premium">
+          <SideBySidePanel content={session.scholar} />
+        </div>
+      );
+      case 'quiz': return (
+        <div className="h-full scale-95 origin-top">
+          <QuizCard questions={mockQuizQuestions} />
+        </div>
+      );
+      default: return null;
+    }
+  };
+
   return (
-    <div className="w-full flex flex-col gap-10 animate-fade-in-up duration-1000 max-w-5xl mx-auto">
-      {/* V8 Gloss Mode Pill */}
+    <div className="w-full flex flex-col gap-12 animate-fade-in-up duration-1000 max-w-7xl mx-auto">
+      {/* Mode Controls */}
       <div className="flex justify-center -mt-8">
-        <nav className="flex gap-2 p-2 bg-card/60 border border-primary/10 rounded-full shadow-2xl backdrop-blur-3xl">
+        <nav className="flex gap-2 p-2 bg-card/60 border border-primary/10 rounded-full shadow-premium backdrop-blur-3xl">
+          <button 
+            onClick={() => setActiveMode('adaptive')}
+            className={`px-6 py-3.5 rounded-full text-[10px] font-black tracking-widest flex items-center gap-4 transition-all ${
+              activeMode === 'adaptive' ? 'bg-primary text-white shadow-lg' : 'text-muted-foreground/60 hover:text-foreground'
+            }`}
+          >
+             ✨ ADAPTIVE VIEW
+          </button>
           {[
             { id: 'audio', label: 'Podcast', icon: <IconMic /> },
             { id: 'adhd', label: 'Sprint', icon: <IconZap /> },
@@ -80,65 +128,49 @@ export default function LayoutController({ neuroPrint, session }: LayoutControll
             <button
               key={mode.id}
               onClick={() => setActiveMode(mode.id)}
-              className={`px-6 py-3.5 rounded-full text-[11px] font-black tracking-[0.2em] transition-all duration-500 flex items-center gap-4 group ${
+              className={`px-6 py-3.5 rounded-full text-[10px] font-black tracking-widest transition-all duration-500 flex items-center gap-4 group ${
                 activeMode === mode.id 
-                  ? 'bg-foreground text-background scale-105 shadow-2xl shadow-primary/20' 
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+                  ? 'bg-foreground text-background shadow-premium' 
+                  : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/40'
               }`}
             >
               <div className={`${activeMode === mode.id ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}>
                 {mode.icon}
               </div>
-              <span className="hidden sm:inline uppercase">{mode.label}</span>
+              <span className="hidden lg:inline uppercase">{mode.label}</span>
             </button>
           ))}
         </nav>
       </div>
 
-      {/* Main Viewport */}
-      <div className="flex-1 min-h-[550px] relative">
-        <div className="relative h-full animate-in fade-in zoom-in-95 duration-700">
-          {activeMode === 'audio' && (
-             <div className="h-full border border-border/80 bg-card/10 rounded-[3rem] overflow-hidden shadow-2xl transition-all duration-700">
-               <PodcastPanel script={session.podcast} />
-             </div>
-          )}
-
-          {activeMode === 'adhd' && (
-            <div className="h-full flex flex-col justify-center">
-              <SprintCard 
-                card={session.sprintCards[0]} 
-                onComplete={() => {}} 
-                showChallenge={false} 
-              />
-            </div>
-          )}
-
-          {activeMode === 'scholar' && (
-            <div className="h-full border border-border bg-card/20 rounded-[3rem] p-4 overflow-hidden shadow-2xl transition-all duration-700">
-              <SideBySidePanel content={session.scholar} />
-            </div>
-          )}
-
-          {activeMode === 'quiz' && (
-            <div className="h-full">
-              <QuizCard questions={mockQuizQuestions} />
-            </div>
-          )}
-        </div>
+      {/* Surface Viewport */}
+      <div className={`flex-1 min-h-[600px] relative animate-in fade-in zoom-in-95 duration-700`}>
+         {activeMode === 'adaptive' ? (
+           <div className={`grid gap-10 h-full ${highModes.length > 1 ? 'grid-cols-1 lg:grid-cols-2' : 'max-w-4xl mx-auto'}`}>
+              {highModes.map(mode => (
+                <div key={mode} className="h-full">
+                   {renderPanel(mode)}
+                </div>
+              ))}
+           </div>
+         ) : (
+           <div className="max-w-4xl mx-auto h-full">
+              {renderPanel(activeMode)}
+           </div>
+         )}
       </div>
 
       {/* Surface Status */}
-      <div className="flex justify-between items-center py-6 border-t border-border/10">
+      <div className="flex justify-between items-center py-8 border-t border-border/10">
         <div className="flex items-center gap-4">
-           <span className="w-2 h-2 rounded-full bg-primary/60 animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
-           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/30">Nuro Engine Active</p>
+           <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+           <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary/30">Nuro Synthesis Core Active</p>
         </div>
         <button 
           onClick={() => setIsSessionFinished(true)}
-          className="px-10 py-5 rounded-full border-2 border-border/80 bg-secondary/40 text-[10px] font-black uppercase tracking-[0.25em] hover:bg-foreground hover:text-background transition-all hover:scale-105 shadow-xl"
+          className="px-12 py-5 rounded-full border border-border/40 bg-card text-[10px] font-bold uppercase tracking-widest hover:bg-foreground hover:text-background transition-all hover:scale-105 shadow-premium"
         >
-          Wrap Up Study session
+          Wrap Up Session
         </button>
       </div>
     </div>

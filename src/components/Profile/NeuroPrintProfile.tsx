@@ -58,20 +58,20 @@ export default function NeuroPrintProfile({ vector: initialVector, onClose }: Ne
         <div className="flex-1 p-16 flex flex-col items-center justify-center gap-12 bg-secondary/30 relative">
           <div className="text-center space-y-3">
              <h2 className="text-4xl font-black tracking-tightest">Your Brain Map</h2>
-             <p className="text-[10px] font-black tracking-[0.4em] text-primary/60">Live Cognitive Dimensions</p>
+             <p className="text-[10px] font-black tracking-[0.4em] text-primary/80 dark:text-primary/60 uppercase">Live Cognitive Dimensions</p>
           </div>
 
           <div className="relative w-72 h-72">
              <svg width="300" height="300" className="drop-shadow-2xl">
                 {/* Reference Circles */}
-                <circle cx="150" cy="150" r="100" fill="none" stroke="currentColor" strokeWidth="1" className="text-border opacity-40" strokeDasharray="4 4" />
-                <circle cx="150" cy="150" r="66" fill="none" stroke="currentColor" strokeWidth="1" className="text-border opacity-30" strokeDasharray="4 4" />
-                <circle cx="150" cy="150" r="33" fill="none" stroke="currentColor" strokeWidth="1" className="text-border opacity-20" strokeDasharray="4 4" />
+                <circle cx="150" cy="150" r="100" fill="none" stroke="currentColor" strokeWidth="1" className="text-border dark:opacity-40 opacity-80" strokeDasharray="4 4" />
+                <circle cx="150" cy="150" r="66" fill="none" stroke="currentColor" strokeWidth="1" className="text-border dark:opacity-30 opacity-60" strokeDasharray="4 4" />
+                <circle cx="150" cy="150" r="33" fill="none" stroke="currentColor" strokeWidth="1" className="text-border dark:opacity-20 opacity-40" strokeDasharray="4 4" />
                 
                 {/* Axis Lines */}
-                <line x1="150" y1="150" x2="150" y2="50" stroke="currentColor" strokeWidth="2" className="text-border opacity-40" />
-                <line x1="150" y1="150" x2="236.6" y2="200" stroke="currentColor" strokeWidth="2" className="text-border opacity-40" />
-                <line x1="150" y1="150" x2="63.4" y2="200" stroke="currentColor" strokeWidth="2" className="text-border opacity-40" />
+                <line x1="150" y1="150" x2="150" y2="50" stroke="currentColor" strokeWidth="2" className="text-border dark:opacity-40 opacity-70" />
+                <line x1="150" y1="150" x2="236.6" y2="200" stroke="currentColor" strokeWidth="2" className="text-border dark:opacity-40 opacity-70" />
+                <line x1="150" y1="150" x2="63.4" y2="200" stroke="currentColor" strokeWidth="2" className="text-border dark:opacity-40 opacity-70" />
 
                 {/* The Vector Polygon */}
                 <polygon 
@@ -83,9 +83,9 @@ export default function NeuroPrintProfile({ vector: initialVector, onClose }: Ne
                 />
              </svg>
              {/* Labels */}
-             <span className="absolute top-[-25px] left-1/2 -translate-x-1/2 text-[10px] font-black tracking-widest text-primary/70">Audio Synthesis</span>
-             <span className="absolute bottom-[10px] right-[-40px] text-[10px] font-black tracking-widest text-primary/70">Sprint Velocity</span>
-             <span className="absolute bottom-[10px] left-[-40px] text-[10px] font-black tracking-widest text-primary/70">Scholar Depth</span>
+             <span className="absolute top-[-25px] left-1/2 -translate-x-1/2 text-[10px] font-black tracking-widest text-primary/90 dark:text-primary/70 uppercase">Audio Synthesis</span>
+             <span className="absolute bottom-[10px] right-[-40px] text-[10px] font-black tracking-widest text-primary/90 dark:text-primary/70 uppercase">Sprint Velocity</span>
+             <span className="absolute bottom-[10px] left-[-40px] text-[10px] font-black tracking-widest text-primary/90 dark:text-primary/70 uppercase">Scholar Depth</span>
           </div>
 
           <div className="px-10 py-5 rounded-[2.5rem] bg-primary/5 border border-primary/10 text-center backdrop-blur-3xl shadow-2xl">
@@ -97,7 +97,7 @@ export default function NeuroPrintProfile({ vector: initialVector, onClose }: Ne
         {/* Right: Stats & Badges */}
         <div className="flex-1 p-16 overflow-y-auto custom-scrollbar flex flex-col gap-12 relative bg-card/50">
           <div className="space-y-10">
-            <h3 className="text-[10px] font-black tracking-[0.4em] text-muted-foreground/30">Cognitive Breakdown</h3>
+            <h3 className="text-[10px] font-black tracking-[0.4em] text-muted-foreground/60 dark:text-muted-foreground/30 uppercase">Cognitive Breakdown</h3>
             <div className="grid grid-cols-1 gap-8">
               {[
                 { label: 'Auditory Path', id: 'audio', value: vector.audio, color: 'bg-blue-500', desc: 'Efficiency in speech-to-logic conversion.' },
@@ -138,11 +138,11 @@ export default function NeuroPrintProfile({ vector: initialVector, onClose }: Ne
           <div className="space-y-10">
             <h3 className="text-[10px] font-black tracking-[0.4em] text-muted-foreground/30">Neural Accomplishments</h3>
             <div className="grid grid-cols-4 gap-4 pb-10">
-               {['🎙️', '🔥', '📚', '🧩', '🧪', '🏹', '🏹', '🏰'].map((emoji, i) => (
-                 <div key={i} className={`aspect-square rounded-2xl flex items-center justify-center text-2xl shadow-inner border border-border group hover:scale-110 active:scale-95 transition-all cursor-pointer ${i < 4 ? 'bg-secondary' : 'bg-secondary/40 opacity-20 grayscale'}`}>
-                    <span className="group-hover:rotate-12 transition-transform duration-500">{emoji}</span>
-                 </div>
-               ))}
+                {['🎙️', '🔥', '📚', '🧩', '🧪', '🏹', '🏹', '🏰'].map((emoji, i) => (
+                  <div key={i} className={`aspect-square rounded-2xl flex items-center justify-center text-2xl shadow-inner border border-border group hover:scale-110 active:scale-95 transition-all cursor-pointer ${i < 4 ? 'bg-secondary' : 'bg-secondary/20 dark:bg-secondary/40 opacity-40 grayscale'}`}>
+                     <span className="group-hover:rotate-12 transition-transform duration-500">{emoji}</span>
+                  </div>
+                ))}
             </div>
           </div>
         </div>

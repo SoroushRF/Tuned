@@ -173,7 +173,7 @@ export default function UploadDesk() {
 
     // Roll up all success content
     const combinedText = items
-      .filter(i => i.status === 'success' && (i.type === 'text' || i.type === 'link' || i.index === 'pdf' || i.type === 'docx'))
+      .filter(i => i.status === 'success' && (i.type === 'text' || i.type === 'link' || i.type === 'pdf' || i.type === 'docx'))
       .map(i => `[Source: ${i.name}]\n${i.content}`)
       .join('\n\n');
 
@@ -188,8 +188,8 @@ export default function UploadDesk() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col p-12 animate-fade-in-up duration-1000 max-w-7xl mx-auto">
-      <div className="mb-14 space-y-4">
+    <div className="w-full h-full flex flex-col pt-0 px-12 pb-12 animate-fade-in-up duration-1000 max-w-7xl mx-auto">
+      <div className="mb-8 space-y-4">
          <h2 className="text-4xl font-black tracking-tightest uppercase">Upload Workspace</h2>
          <p className="text-muted-foreground font-bold text-lg opacity-40 uppercase tracking-widest leading-relaxed">
            Bring your multi-modal context to life.
@@ -318,8 +318,8 @@ export default function UploadDesk() {
             <button 
               disabled={isProcessingAll || items.filter(i => i.status === 'success').length === 0}
               onClick={processAll}
-              className={`group w-full py-8 rounded-[4rem] font-black text-xl tracking-widest flex items-center justify-center gap-6 transition-all relative overflow-hidden ${
-                isProcessingAll ? 'bg-secondary text-muted-foreground cursor-not-allowed' : 'bg-foreground text-background hover:scale-[1.02] shadow-[0_40px_80px_-15px_rgba(0,0,0,0.4)]'
+              className={`group w-full py-5 rounded-[2.5rem] font-black text-xs tracking-[0.3em] flex items-center justify-center gap-6 transition-all relative overflow-hidden ${
+                isProcessingAll ? 'bg-secondary text-muted-foreground cursor-not-allowed' : 'bg-foreground text-background hover:scale-[1.02] shadow-premium uppercase'
               }`}
             >
                {isProcessingAll ? (
