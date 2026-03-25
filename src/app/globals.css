@@ -27,30 +27,56 @@
   }
 
   .dark {
-    --background: 222.2 84% 3.9%;
+    --background: 222.2 40% 8%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 6.9%;
+    --card: 222.2 35% 12%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 3.9%;
+    --popover: 222.2 40% 8%;
     --popover-foreground: 210 40% 98%;
     --primary: 243.4 85% 65%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 217.2 32.6% 12%;
+    --secondary: 217.2 30% 18%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
+    --muted: 217.2 25% 22%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 217.2 30% 20%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 217.2 30% 20%;
+    --input: 217.2 30% 20%;
     --ring: 243.4 85% 65%;
+  }
+}
+
+@layer utilities {
+  .shadow-premium {
+    box-shadow: 
+      0 0 0 1px rgba(0,0,0,0.03),
+      0 2px 4px rgba(0,0,0,0.05),
+      0 12px 24px rgba(0,0,0,0.05);
+  }
+
+  .dark .shadow-premium {
+    box-shadow: 
+      0 0 0 1px rgba(255,255,255,0.05),
+      0 4px 10px rgba(0,0,0,0.3),
+      0 20px 40px rgba(0,0,0,0.4);
+  }
+
+  .glass-silk {
+    @apply bg-card/60 backdrop-blur-3xl border border-white/10;
+  }
+
+  .glass-gloss {
+    @apply bg-white/5 backdrop-blur-md border border-white/20 shadow-2xl;
   }
 }
 
 * {
   box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -58,8 +84,21 @@ body {
   background: var(--background);
   font-family: 'Outfit', 'Inter', system-ui, sans-serif;
   font-style: normal !important;
-  transition: background-color 0.4s ease, color 0.4s ease;
+  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   overflow-x: hidden;
+  letter-spacing: -0.01em;
+}
+
+/* Premium Background Effects */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 0% 0%, hsla(var(--primary), 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, hsla(var(--primary), 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -69,20 +108,17 @@ body {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: hsla(var(--primary), 0.1);
   border-radius: 99px;
+  transition: all 0.3s;
 }
-
-.glass-silk {
-  background: rgba(var(--card), 0.6);
-  backdrop-filter: blur(64px);
-  -webkit-backdrop-filter: blur(64px);
-  border: 1px solid rgba(var(--primary), 0.1);
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsla(var(--primary), 0.3);
 }
 
 /* Duotone Icon Base */
 .duotone-icon {
-  stroke-width: 2.5;
+  stroke-width: 1.5;
   stroke: currentColor;
 }
 
@@ -92,25 +128,43 @@ body {
 }
 
 .animate-float {
-  animation: float 6s ease-in-out infinite;
+  animation: float 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-15px) rotate(1deg); }
 }
 
 .animate-fade-in-up {
-  animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fade-in-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(20px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
+}
+
+/* Text Shimmer Effect */
+.text-shimmer {
+  background: linear-gradient(90deg, 
+    hsla(var(--foreground), 1) 0%, 
+    hsla(var(--primary), 1) 50%, 
+    hsla(var(--foreground), 1) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+
+@keyframes shimmer {
+  to { background-position: 200% center; }
 }

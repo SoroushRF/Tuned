@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { NeuroPrintVector } from '@/types';
 
 interface SurveyQuestion {
@@ -88,7 +88,6 @@ export default function NeuroPrintSurvey({ onComplete }: NeuroPrintSurveyProps) 
     if (currentStep < questions.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Average the scores for the final vector
       const finalVector: NeuroPrintVector = {
         audio: newScores.reduce((acc, s) => acc + s.audio, 0) / newScores.length,
         adhd: newScores.reduce((acc, s) => acc + s.adhd, 0) / newScores.length,
@@ -103,63 +102,57 @@ export default function NeuroPrintSurvey({ onComplete }: NeuroPrintSurveyProps) 
   const progress = ((currentStep + 1) / questions.length) * 100;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-background flex items-center justify-center p-6 animate-in fade-in duration-700">
-      <div className="w-full max-w-4xl flex flex-col items-center gap-16 animate-in slide-in-from-bottom-12 duration-1000">
-        
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-700">
+      {/* Heavy Internal Blur */}
+      <div className="absolute inset-0 bg-background/20 backdrop-blur-3xl" />
+
+      <div className="relative z-10 w-full max-w-5xl flex flex-col items-center gap-20">
         {/* Progress System */}
-        <div className="w-full max-w-xl flex flex-col items-center gap-6">
-           <div className="h-2 w-full bg-secondary border border-border rounded-full overflow-hidden p-0.5">
+        <div className="w-full max-w-sm flex flex-col items-center gap-8">
+           <div className="h-1 w-full bg-secondary/30 rounded-full overflow-hidden relative border border-border/10">
               <div 
-                className="h-full bg-primary rounded-full transition-all duration-700 ease-out shadow-[0_0_15px_rgba(99,102,241,0.5)]"
+                className="h-full bg-primary transition-all duration-700 ease-out shadow-[0_0_20px_rgba(99,102,241,0.6)]"
                 style={{ width: `${progress}%` }}
               />
            </div>
-           <div className="flex items-center gap-4 text-[11px] font-black uppercase tracking-[0.4em] text-primary/40">
-              <span>Step {currentStep + 1} of {questions.length}</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-primary/20" />
-              <span>NeuroPrint Calibration</span>
-           </div>
+           <p className="text-[10px] font-black tracking-[0.5em] text-primary/40 uppercase">
+              Phase {currentStep + 1} • Calibration
+           </p>
         </div>
 
         {/* Question Header */}
-        <div className="text-center space-y-4">
-           <h2 className="text-4xl md:text-5xl font-black tracking-tightest leading-tight max-w-2xl bg-gradient-to-br from-foreground to-foreground/50 bg-clip-text text-transparent">
+        <div className="text-center space-y-6">
+           <h2 className="text-5xl md:text-6xl font-black tracking-tightest leading-[1.1] max-w-3xl text-shimmer">
              {questions[currentStep].text}
            </h2>
         </div>
 
         {/* Options Grid */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8">
            {questions[currentStep].options.map((option, i) => (
              <button
                key={i}
                onClick={() => handleSelect(option.value)}
-               className="group flex flex-col items-center text-center gap-10 p-14 rounded-[4rem] bg-foreground dark:bg-card border-2 border-transparent hover:border-primary hover:bg-card transition-all duration-500 hover:scale-[1.05] active:scale-95 shadow-xl shadow-foreground/5 relative overflow-hidden"
+               className="group relative flex flex-col items-center gap-12 p-12 rounded-[4rem] glass-silk border border-border/40 hover:border-primary hover:bg-card hover:scale-[1.05] active:scale-95 transition-all duration-500 shadow-premium"
              >
-                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                <div className="w-24 h-24 rounded-[2.5rem] bg-card border border-border flex items-center justify-center text-5xl shadow-inner group-hover:rotate-12 transition-transform duration-500 relative z-10">
+                <div className="w-24 h-24 rounded-[2.5rem] bg-card border border-border/60 flex items-center justify-center text-5xl shadow-inner group-hover:rotate-12 transition-transform duration-700 relative z-10">
                    {option.icon}
                 </div>
                 <div className="space-y-4 relative z-10">
-                   <p className="text-xl font-black leading-tight tracking-tight text-background dark:text-foreground group-hover:text-primary transition-colors">
+                   <p className="text-xl font-bold leading-tight tracking-tight text-foreground/80 group-hover:text-primary transition-colors">
                      {option.label}
                    </p>
                 </div>
-                <div className="absolute top-10 right-10 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors" />
+                <div className="absolute top-10 right-10 w-1.5 h-1.5 rounded-full bg-primary/20 group-hover:bg-primary transition-colors" />
              </button>
            ))}
         </div>
 
-        {/* Bottom Context */}
-        <div className="flex items-center gap-5 opacity-40">
-           <div className="flex -space-x-3">
-              {[1, 2, 3].map((_, i) => (
-                <div key={i} className="w-8 h-8 rounded-full border-4 border-background bg-secondary flex items-center justify-center text-[8px] font-black text-primary">
-                   {['⚡', '🎙️', '📚'][i]}
-                </div>
-              ))}
-           </div>
-           <span className="text-[9px] font-black tracking-[0.4em]">Optimizing Strategy Core...</span>
+        {/* Ambient Footer */}
+        <div className="flex items-center gap-6 opacity-30">
+           <div className="h-px w-10 bg-border" />
+           <span className="text-[9px] font-black tracking-[0.4em] uppercase">Mind Mapping Core Active</span>
+           <div className="h-px w-10 bg-border" />
         </div>
       </div>
     </div>
