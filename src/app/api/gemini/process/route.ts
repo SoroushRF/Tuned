@@ -9,6 +9,7 @@ import {
   isGeminiDebugEnabled,
   summarizeText,
 } from "@/lib/gemini/debug";
+import { buildScholarChunkManifest } from "@/lib/scholar/chunking";
 
 // Pull the first available API key for the new SDK
 const API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
@@ -31,9 +32,10 @@ const SPRINT_PROMPT_EXTENSION = `
 `;
 
 const SCHOLAR_PROMPT_EXTENSION = `
-  [SCHOLAR EXPERT MODE]: The user has high Scholar depth. 
-  Ensure the simplified text doesn't lose technical nuance. 
-  Key terms should include etymology or exam-specific context (e.g., "Likely to appear in MCQ about...").
+  [SCHOLAR EXPERT MODE]: The user has high Scholar depth.
+  Build a side-by-side reading experience with chunked page-like sections, simplified rewrites, highlighted jargon, and concise term explanations.
+  Preserve technical nuance while making the language easier to follow.
+  Every chunk should include a short summary, highlighted terms, and the key terms for that section.
 `;
 
 function trimPodcastText(text: string, maxWords: number) {
@@ -124,12 +126,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "API Key not configured." }, { status: 500 });
     }
 
+    const scholarBundle = buildScholarChunkManifest(text, pdfFiles.map((file) => file.name));
+
     logGeminiRequest("process", requestId, {
       textLength: text.length,
       textPreview: summarizeText(text, 500),
       vector,
       pdfCount: pdfFiles.length,
       pdfNames: pdfFiles.map((file) => file.name),
+      scholarSourceCount: scholarBundle.sourceCount,
+      scholarChunkCount: scholarBundle.chunkCount,
       model: "gemini-2.5-flash",
     });
 
@@ -161,12 +167,12 @@ export async function POST(req: NextRequest) {
       If ${dominantMode} is highest:
       - For AUDIO: Make the podcast script concise, multi-perspective, and calm. Prefer 3 to 4 short exchanges, use minimal filler, and keep the spoken length close to 1 minute or under.
       - For ADHD/SPRINT: Make the cards concise, focused, and low-overwhelm. Use one concept per card, at most 3 bullets, and a calm challenge question. Avoid hype, riddles, and long paragraphs.
-      - For SCHOLAR: Provide the most rigorous and academic simplified text with etymological breakdowns.
+      - For SCHOLAR: Provide a side-by-side scholarly reading output with chunked page-like sections, simplified rewrites, highlighted jargon, and concise term explanations.
       
       Your goal is to transform material into a unified JSON object matching this interface:
       {
         "sprintCards": [{ "id": "string", "title": "string", "bullets": ["string"], "challenge": "string", "diagramPrompt": "string", "status": "pending", "rescue": { "reframeText": "string", "hint": "string", "visualAid": "string" } }],
-        "scholar": { "originalText": "string", "simplifiedText": "string", "keyTerms": [{ "term": "string", "definition": "string", "examRelevance": "string" }] },
+        "scholar": { "originalText": "string", "simplifiedText": "string", "keyTerms": [{ "term": "string", "definition": "string", "examRelevance": "string" }], "highlightedTerms": ["string"], "sourceLabels": ["string"], "chunks": [{ "chunkId": "string", "sourceLabel": "string", "pageLabel": "string", "originalText": "string", "simplifiedText": "string", "summary": "string", "highlightedTerms": ["string"], "keyTerms": [{ "term": "string", "definition": "string", "examRelevance": "string" }] }] },
         "podcast": { "segments": [{ "speaker": "A" | "B", "text": "string" }] },
         "conceptMapNodes": [{ "id": "string", "label": "string" }],
         "conceptMapEdges": [{ "source": "string", "target": "string" }]
@@ -180,6 +186,9 @@ export async function POST(req: NextRequest) {
     `;
 
     const finalPrompt = `
+      SCHOLAR READING MAP:
+      ${scholarBundle.manifest}
+
       INPUT MATERIAL:
       "${text.substring(0, 15000)}"
       ${text.trim() ? "" : "No extra text sources were provided. Use the uploaded PDF files as the primary source."}
@@ -269,6 +278,14 @@ export async function POST(req: NextRequest) {
           podcastTargetDurationSeconds: shortenedPodcast.targetDurationSeconds ?? null,
         });
       }
+    }
+    if (parsed?.scholar) {
+      parsed.scholar = {
+        highlightedTerms: [],
+        sourceLabels: [],
+        chunks: [],
+        ...parsed.scholar,
+      };
     }
     return NextResponse.json(parsed);
 

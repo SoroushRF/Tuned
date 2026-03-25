@@ -101,6 +101,24 @@ export interface ScholarContent {
     definition: string;
     examRelevance: string;
   }[];
+  chunks?: ScholarChunk[];
+  highlightedTerms?: string[];
+  sourceLabels?: string[];
+}
+
+export interface ScholarChunk {
+  chunkId: string;
+  sourceLabel: string;
+  pageLabel: string;
+  originalText: string;
+  simplifiedText: string;
+  summary: string;
+  highlightedTerms: string[];
+  keyTerms: {
+    term: string;
+    definition: string;
+    examRelevance: string;
+  }[];
 }
 
 /**
