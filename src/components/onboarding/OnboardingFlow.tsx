@@ -9,6 +9,7 @@ import QuestionCard from './QuestionCard';
 import { cn } from '@/lib/utils';
 
 interface OnboardingFlowProps {
+  onBeginCalibration: () => void;
   onComplete: (vector: NeuroPrintVector) => void;
 }
 
@@ -17,7 +18,7 @@ interface StepState {
   freeText: string;
 }
 
-export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
+export default function OnboardingFlow({ onBeginCalibration, onComplete }: OnboardingFlowProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [maxStepReached, setMaxStepReached] = useState(0);
   const [history, setHistory] = useState<Record<number, StepState>>({});
@@ -83,6 +84,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       setCurrentStep(prev => prev + 1);
     } else {
       setIsCalibrating(true);
+      onBeginCalibration();
       try {
         const res = await fetch('/api/gemini/analyze-onboarding', {
           method: 'POST',
@@ -176,17 +178,17 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         {/* Navigation & Progress Header */}
         <div className="w-full max-w-2xl flex items-start gap-4 md:gap-8 opacity-90">
           {/* Always Present Back Button */}
-          <button
-            onClick={handleBack}
-            disabled={currentStep === 0}
-            className={cn(
-              "p-4 rounded-full transition-all flex items-center justify-center shrink-0",
-              currentStep === 0 
-                ? "bg-secondary/5 text-foreground/10 cursor-not-allowed scale-90" 
-                : "bg-secondary/20 text-foreground/60 hover:bg-secondary/40 hover:text-foreground active:scale-90"
-            )}
-            title="Go Back"
-          >
+              <button
+                onClick={handleBack}
+                disabled={currentStep === 0}
+                className={cn(
+                  "p-4 rounded-full transition-all flex items-center justify-center shrink-0",
+                  currentStep === 0
+                    ? "bg-secondary/5 text-foreground/10 cursor-not-allowed scale-90"
+                    : "bg-secondary/20 text-foreground/60 hover:bg-secondary/30 hover:text-foreground active:translate-y-[1px]"
+                )}
+                title="Go Back"
+              >
             <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 stroke-[3]">
               <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -209,7 +211,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   className={cn(
                     "px-10 py-3 rounded-full font-bold transition-all duration-300 uppercase tracking-[0.2em] text-[10px]",
                     isNextEnabled && !isCalibrating
-                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 active:scale-95" 
+                      ? "bg-primary text-primary-foreground shadow-sm hover:shadow-md active:translate-y-[1px]"
                       : "bg-foreground/5 text-foreground/20 border border-foreground/5 cursor-not-allowed opacity-50"
                   )}
                 >

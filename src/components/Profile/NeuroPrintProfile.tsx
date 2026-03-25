@@ -140,16 +140,6 @@ export default function NeuroPrintProfile({ vector: initialVector, onClose }: Ne
             </div>
           </div>
 
-          <div className="space-y-6">
-            <h3 className="text-[10px] font-black tracking-[0.4em] text-muted-foreground/20 uppercase">Accomplishments</h3>
-            <div className="grid grid-cols-4 gap-3">
-                {['🎙️', '🔥', '📚', '🧩', '🧪', '🏹', '🏹', '🏰'].map((emoji, i) => (
-                  <div key={i} className={`aspect-square rounded-xl flex items-center justify-center text-xl shadow-sm border border-border/20 group hover:scale-110 transition-all cursor-pointer ${i < 4 ? 'bg-secondary/10' : 'bg-secondary/5 opacity-30 grayscale'}`}>
-                     <span className="group-hover:rotate-12 transition-transform duration-500">{emoji}</span>
-                  </div>
-                ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>

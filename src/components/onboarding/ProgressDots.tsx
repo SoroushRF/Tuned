@@ -14,14 +14,14 @@ export default function ProgressDots({ currentStep, totalSteps, onStepClick, ans
   const steps = Array.from({ length: totalSteps }, (_, i) => i);
 
   return (
-    <div className="w-full flex flex-col items-center gap-6 animate-in fade-in duration-1000">
+    <div className="w-full flex flex-col items-center gap-6 animate-in fade-in duration-500">
       
       {/* Track Layout */}
       <div className="relative flex items-center gap-3">
         {/* Connection Track */}
         <div className="absolute inset-x-0 h-[1.5px] bg-secondary/20 top-1/2 -translate-y-1/2 z-0" />
         <div 
-          className="absolute h-[1.5px] bg-primary top-1/2 -translate-y-1/2 z-0 transition-all duration-700 ease-in-out origin-left" 
+          className="absolute h-[1.5px] bg-primary top-1/2 -translate-y-1/2 z-0 transition-all duration-500 ease-in-out origin-left"
           style={{ width: `${(currentStep / (totalSteps - 1)) * 100}%` }}
         />
 
@@ -38,18 +38,18 @@ export default function ProgressDots({ currentStep, totalSteps, onStepClick, ans
               {/* Dot Wrapper */}
               <div 
                 className={cn(
-                  "relative w-3.5 h-3.5 rounded-full transition-all duration-700",
+                  "relative w-3.5 h-3.5 rounded-full transition-all duration-300",
                   "border-2",
-                  isCompleted 
-                    ? "bg-primary border-primary shadow-[0_0_10px_rgba(99,102,241,0.4)]" 
-                    : isActive 
-                      ? "bg-background border-primary scale-125 shadow-lg ring-4 ring-primary/10"
-                      : "bg-background border-border group-hover:border-primary/40 scale-90"
+                  isCompleted
+                    ? "bg-primary border-primary shadow-[0_0_8px_rgba(0,0,0,0.08)]"
+                    : isActive
+                      ? "bg-background border-primary shadow-sm ring-2 ring-primary/8"
+                      : "bg-background border-border group-hover:border-primary/30"
                 )}
               >
                 {/* Active Inner Dot */}
                 {isActive && (
-                  <div className="absolute inset-1 bg-primary rounded-full animate-pulse" />
+                  <div className="absolute inset-1 bg-primary rounded-full" />
                 )}
               </div>
 
@@ -63,7 +63,7 @@ export default function ProgressDots({ currentStep, totalSteps, onStepClick, ans
       </div>
 
       {/* Progress Label */}
-      <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground/30">
+      <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground/60">
         <span>Calibration Sequence</span>
         <span className="w-1 h-1 rounded-full bg-border" />
         <span className="text-primary/60">{Math.round(((currentStep + 1) / totalSteps) * 100)}% Complete</span>

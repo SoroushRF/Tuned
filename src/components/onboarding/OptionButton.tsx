@@ -16,23 +16,23 @@ export default function OptionButton({ option, isSelected, onClick, isMultiSelec
     <button
       onClick={onClick}
       className={cn(
-        "w-full group relative flex items-center justify-between p-5 rounded-2xl transition-all duration-500",
+        "w-full group relative flex items-center justify-between p-5 rounded-2xl transition-all duration-300",
         "border border-transparent",
-        isSelected 
-          ? "bg-primary/10 border-primary/40 shadow-[0_10px_30px_rgba(99,102,241,0.1)] ring-1 ring-primary/20" 
-          : "bg-secondary/10 hover:bg-secondary/20 hover:border-border/60 hover:scale-[1.01]"
+        isSelected
+          ? "bg-primary/8 border-primary/30 shadow-[0_6px_14px_rgba(0,0,0,0.05)] ring-1 ring-primary/10"
+          : "bg-card/80 border-border/60 shadow-sm hover:bg-secondary/20 hover:border-border/80"
       )}
     >
       <div className="flex items-center gap-5">
         {/* Animated Select Indicator */}
         <div className={cn(
-          "w-6 h-6 rounded-lg border-[1.5px] flex items-center justify-center transition-all duration-500",
-          isSelected 
-            ? "bg-primary border-primary shadow-lg shadow-primary/30 rotate-0 scale-100" 
-            : "border-foreground/10 group-hover:border-primary/40 rotate-[-15deg] scale-95"
+          "w-6 h-6 rounded-lg border-[1.5px] flex items-center justify-center transition-all duration-300",
+          isSelected
+            ? "bg-primary border-primary shadow-sm rotate-0"
+            : "border-foreground/10 group-hover:border-primary/40 rotate-[-6deg]"
         )}>
           {isSelected && (
-            <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 text-primary-foreground stroke-[4.5] animate-in zoom-in-50 duration-300">
+            <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 text-primary-foreground stroke-[4.5] animate-in fade-in duration-200">
               <path d="M5 13l4 4L19 7" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           )}
@@ -40,12 +40,12 @@ export default function OptionButton({ option, isSelected, onClick, isMultiSelec
 
         <div className="flex flex-col items-start gap-0.5">
           <span className={cn(
-            "text-lg font-bold tracking-tight transition-all duration-500",
-            isSelected ? "text-foreground translate-x-1" : "text-foreground/60 group-hover:text-foreground"
+            "text-lg font-bold tracking-tight transition-all duration-300",
+            isSelected ? "text-foreground" : "text-foreground/80 group-hover:text-foreground"
           )}>
             {option.label}
           </span>
-          <span className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
             {isSelected ? 'Calibrated' : 'Select Alignment'}
           </span>
         </div>

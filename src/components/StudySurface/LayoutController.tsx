@@ -35,8 +35,8 @@ export default function LayoutController({ neuroPrint, session }: LayoutControll
     <div className="w-full h-full animate-fade-in-up duration-1000 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-10">
          <div className="flex items-center gap-4">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
-            <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-primary/40">Neural Synthesis: {bestMode.toUpperCase()}</h2>
+            <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(0,0,0,0.08)]" />
+            <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-primary/50">Workspace Mode: {bestMode.toUpperCase()}</h2>
          </div>
       </div>
 

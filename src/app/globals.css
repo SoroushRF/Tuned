@@ -4,72 +4,72 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
-    --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 262.1 83.3% 57.8%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
+    --background: 42 25% 98%;
+    --foreground: 222 18% 14%;
+    --card: 42 20% 99%;
+    --card-foreground: 222 18% 14%;
+    --popover: 42 20% 99%;
+    --popover-foreground: 222 18% 14%;
+    --primary: 205 18% 38%;
+    --primary-foreground: 42 25% 98%;
+    --secondary: 220 16% 95%;
+    --secondary-foreground: 222 18% 14%;
+    --muted: 220 16% 95%;
+    --muted-foreground: 220 8% 42%;
+    --accent: 220 16% 95%;
+    --accent-foreground: 222 18% 14%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 262.1 83.3% 57.8%;
+    --destructive-foreground: 42 25% 98%;
+    --border: 220 14% 89%;
+    --input: 220 14% 89%;
+    --ring: 205 18% 38%;
     --radius: 1.5rem;
   }
 
   .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-    --card: 224 71.4% 4.1%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 263.4 70% 50%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
+    --background: 222 18% 8%;
+    --foreground: 220 18% 96%;
+    --card: 222 18% 10%;
+    --card-foreground: 220 18% 96%;
+    --popover: 222 18% 10%;
+    --popover-foreground: 220 18% 96%;
+    --primary: 205 18% 58%;
+    --primary-foreground: 222 18% 8%;
+    --secondary: 222 14% 16%;
+    --secondary-foreground: 220 18% 96%;
+    --muted: 222 14% 16%;
+    --muted-foreground: 220 10% 66%;
+    --accent: 222 14% 16%;
+    --accent-foreground: 220 18% 96%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 263.4 70% 50%;
+    --destructive-foreground: 220 18% 96%;
+    --border: 222 12% 18%;
+    --input: 222 12% 18%;
+    --ring: 205 18% 58%;
   }
 }
 
 @layer utilities {
   .shadow-premium {
     box-shadow: 
-      0 0 0 1px rgba(0,0,0,0.03),
-      0 2px 4px rgba(0,0,0,0.05),
-      0 12px 24px rgba(0,0,0,0.05);
+      0 0 0 1px rgba(0,0,0,0.02),
+      0 2px 6px rgba(0,0,0,0.04),
+      0 10px 18px rgba(0,0,0,0.04);
   }
 
   .dark .shadow-premium {
     box-shadow: 
-      0 0 0 1px rgba(255,255,255,0.05),
-      0 4px 10px rgba(0,0,0,0.3),
-      0 20px 40px rgba(0,0,0,0.4);
+      0 0 0 1px rgba(255,255,255,0.04),
+      0 4px 10px rgba(0,0,0,0.25),
+      0 16px 32px rgba(0,0,0,0.25);
   }
 
   .glass-silk {
-    @apply bg-card/60 backdrop-blur-3xl border border-white/10;
+    @apply bg-card/80 backdrop-blur-2xl border border-border/60 dark:border-white/10;
   }
 
   .glass-gloss {
-    @apply bg-white/5 backdrop-blur-md border border-white/20 shadow-2xl;
+    @apply bg-white/5 backdrop-blur-md border border-border/40 dark:border-white/20 shadow-lg;
   }
 }
 
@@ -95,9 +95,9 @@ body::before {
   position: fixed;
   inset: 0;
   background: 
-    radial-gradient(circle at 10% 20%, hsla(var(--primary), 0.12) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, hsla(var(--primary), 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, hsla(var(--primary), 0.03) 0%, transparent 80%);
+    radial-gradient(circle at 10% 20%, hsla(var(--primary), 0.08) 0%, transparent 38%),
+    radial-gradient(circle at 90% 80%, hsla(var(--primary), 0.05) 0%, transparent 38%),
+    radial-gradient(circle at 50% 50%, hsla(var(--primary), 0.02) 0%, transparent 78%);
   pointer-events: none;
   z-index: -1;
 }
@@ -116,12 +116,12 @@ body::before {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: hsla(var(--primary), 0.1);
+  background: hsla(var(--primary), 0.08);
   border-radius: 99px;
   transition: all 0.3s;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: hsla(var(--primary), 0.3);
+  background: hsla(var(--primary), 0.18);
 }
 
 /* Duotone Icon Base */
@@ -136,7 +136,7 @@ body::before {
 }
 
 .animate-float {
-  animation: float 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: float 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes float {
@@ -145,7 +145,7 @@ body::before {
 }
 
 .animate-fade-in-up {
-  animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fade-in-up 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fade-in-up {
@@ -163,14 +163,14 @@ body::before {
 .text-shimmer {
   background: linear-gradient(90deg, 
     hsla(var(--foreground), 1) 0%, 
-    hsla(var(--primary), 1) 50%, 
+    hsla(var(--primary), 0.9) 50%,
     hsla(var(--foreground), 1) 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: shimmer 4s linear infinite;
+  animation: shimmer 8s linear infinite;
 }
 
 @keyframes shimmer {
