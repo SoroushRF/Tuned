@@ -49,11 +49,24 @@ export async function POST(req: NextRequest) {
     if (vector.audio > 0.5) promptExtensions += PODCAST_PROMPT_EXTENSION;
     if (vector.adhd > 0.5) promptExtensions += SPRINT_PROMPT_EXTENSION;
     if (vector.scholar > 0.5) promptExtensions += SCHOLAR_PROMPT_EXTENSION;
+    const scores = [
+      { id: 'audio', val: vector.audio },
+      { id: 'adhd', val: vector.adhd },
+      { id: 'scholar', val: vector.scholar },
+    ];
+    const dominantMode = scores.sort((a, b) => b.val - a.val)[0].id;
 
     const systemInstructionContent = `
       You are NURO, an adaptive AI study companion. 
       USER NEUROPRINT PERSONALITY: ${personality}
       ${promptExtensions}
+      
+      DOMINANT LEARNING MODE: ${dominantMode.toUpperCase()}
+      [CRITICAL]: The user's highest dimension is ${dominantMode.toUpperCase()}. You MUST make this section of the JSON the "Hero Section" with the most creative effort, depth, and detail. 
+      If ${dominantMode} is highest:
+      - For AUDIO: Make the podcast script longer, multi-perspective, and high-energy.
+      - For ADHD/SPRINT: Make the cards incredibly high-velocity, with many segments and riddles.
+      - For SCHOLAR: Provide the most rigorous and academic simplified text with etymological breakdowns.
       
       Your goal is to transform material into a unified JSON object matching this interface:
       {
@@ -63,6 +76,12 @@ export async function POST(req: NextRequest) {
         "conceptMapNodes": [{ "id": "string", "label": "string" }],
         "conceptMapEdges": [{ "source": "string", "target": "string" }]
       }
+
+      CRITICAL CONSTRAINTS:
+      1. All keys in the interface MUST be populated with valid, creative content based on the input.
+      2. If a section seems difficult to populate from raw text alone, use your depth as an AI to synthesize relevant academic context.
+      3. NEVER return empty arrays ([]) or empty objects for any of the required keys.
+      4. Ensure at least 3 sprintCards and 5 podcast segments.
     `;
 
     const finalPrompt = `
@@ -73,9 +92,9 @@ export async function POST(req: NextRequest) {
       CRITICAL: OUTPUT JSON ONLY. NO MARKDOWN.
     `;
 
-    // Using the strict schema for generateContent in @google/genai v3
+    // 3. System Synthesis
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", 
+      model: "gemini-1.5-flash", 
       contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
       config: {
         systemInstruction: { parts: [{ text: systemInstructionContent }] },
@@ -84,7 +103,9 @@ export async function POST(req: NextRequest) {
     });
 
     const responseText = response.text || "";
-    console.debug("Nuro Output Matrix (RAW):", responseText);
+    console.log("------------------------ NURO RESPONSE RAW ------------------------");
+    console.log(responseText);
+    console.log("-------------------------------------------------------------------");
     
     // Robust JSON Finder
     const start = responseText.indexOf('{');

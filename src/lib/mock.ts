@@ -31,101 +31,72 @@ export const mockNeuroPrint: NeuroPrintVector = mockAudioLearner;
  */
 export const mockSprintCards: SprintCard[] = [
   {
-    id: 's1',
-    title: 'Cellular Mitosis',
-    bullets: [
-      'Prophase: Chromosomes condense',
-      'Metaphase: Chromosomes align in middle',
-      'Anaphase: Sister chromatids pull apart'
-    ],
-    challenge: 'Where do chromosomes align during Metaphase?',
-    visualPrompt: 'A simple diagram of cell division with labeled phases'
+    id: "SC001",
+    title: "Echo Chamber (Confirmation Bias)",
+    bullets: ["Seek info confirming beliefs", "Ignore contradicting facts", "Minds love agreement", "Reinforces old ideas"],
+    challenge: "I feed on what you already believe. What am I?",
+    visualPrompt: "Person in a thought bubble with 'Yes' signs"
   },
   {
-    id: 's2',
-    title: 'Metaphase Details',
-    bullets: [
-      'Microtubules attach to kinetochores',
-      'Spindle fibers pull from opposite poles',
-      'Checkpoint ensures accurate separation'
-    ],
-    challenge: 'What attaches to the kinetochores?',
-    visualPrompt: 'Microscopic view of spindle fibers'
+    id: "SC002",
+    title: "Mental Spotlight (Availability Heuristic)",
+    bullets: ["Easy recall means common", "Vivid stories sway judgment", "Recent events loom large", "Familiarity feels more likely"],
+    challenge: "I make rare events seem common because they're loud in your memory.",
+    visualPrompt: "Brain with a spotlight on a single memory"
   }
 ];
 
-/**
- * Mock Scholar Side-by-Side (Scholar Profile)
- */
 export const mockScholarContent: ScholarContent = {
-  originalText: 'Mitosis is a process of nuclear division in eukaryotic cells that occurs when a parent cell divides to produce two identical daughter cells. During cell division, mitosis refers specifically to the separation of the duplicated genetic material carried in the nucleus.',
-  simplifiedText: 'Mitosis is how animal cells clone themselves. One "parent" cell splits into two perfect "daughter" copies. It specifically focuses on how the instructions (DNA) in the nucleus get separated correctly.',
+  originalText: "Cognitive biases represent systematic deviations from rational judgment, arising from heuristic shortcuts employed by the brain to manage information complexity.",
+  simplifiedText: "Cognitive biases are basically shortcuts our brains take. Think of it like a mental fast-pass lane. Instead of thinking through every detail (exhausting!), our brains use these quick rules, called 'heuristics.' Known glitches help us make intentional choices.",
   keyTerms: [
     {
-      term: 'Eukaryotic',
-      definition: 'Cells that contain a nucleus and other membrane-bound organelles.',
-      examRelevance: 'Likely to appear in multiple-choice definitions of cell types.'
+      term: "Cognitive Bias",
+      definition: "A systematic error in thinking that affects the decisions and judgments people make.",
+      examRelevance: "Crucial for explaining irrational behavior in social contexts."
     },
     {
-      term: 'Genetic Material',
-      definition: 'Information stored in DNA that determines the traits of an organism.',
-      examRelevance: 'Core concept for all biology units.'
+      term: "Heuristic",
+      definition: "A mental shortcut that allows people to solve problems quickly.",
+      examRelevance: "Key examples include availability and anchoring."
     }
   ]
 };
 
-/**
- * Mock Podcast Script (Audio Profile)
- */
 export const mockPodcastScript: PodcastScript = {
   segments: [
-    { speaker: 'A', text: "Alright, let's talk about mitosis. It's basically the cell's way of cloning itself, right?" },
-    { speaker: 'B', text: "Exactly. But it's not just a messy split. It's a very choreographed dance of chromosomes." },
-    { speaker: 'A', text: "Wait, so it's all about making sure both new cells get the exact same DNA instructions?" },
-    { speaker: 'B', text: "Spot on. If one cell misses a chromosome, the whole system breaks down." }
+    { speaker: "A", text: "Welcome to Mind Under Matter! We are decoding the software glitches of your brain: cognitive biases." },
+    { speaker: "B", text: "Exactly! Like the Availability Heuristic—vivid stories feeling more true than numbers." }
   ]
 };
 
-/**
- * Mock Quiz System
- */
 export const mockQuizQuestions: QuizQuestion[] = [
   {
-    id: 'q1',
-    question: 'During which phase of mitosis do chromosomes align in the center of the cell?',
-    options: ['Prophase', 'Metaphase', 'Anaphase', 'Telophase'],
-    correctIndex: 1,
-    explanation: 'Metaphase is the "middle" phase where alignment happens.',
-    difficulty: 3,
-    reframedAngle: 'If you were looking through a microscope and saw a straight line of chromosomes, what phase are you in?'
+    id: 'critik',
+    question: "Which bias makes you only look for things you already believe?",
+    options: ["Confirmation Bias", "Anchoring Bias", "Optimism Bias", "Framing Effect"],
+    correctIndex: 0,
+    explanation: "Confirmation bias is the tendency to search for it, interpret it, and favor it.",
+    difficulty: 2,
+    reframedAngle: "Why do we feel 'right' even when we are wrong about a controversial topic?"
   }
 ];
 
-/**
- * Unified Session Output
- */
 export const mockProcessedOutput: ProcessedOutput = {
-  sessionId: 'session_123',
+  sessionId: 'session_final',
   neuroPrint: mockNeuroPrint,
   sprintCards: mockSprintCards,
   scholar: mockScholarContent,
   podcast: mockPodcastScript,
   conceptMapNodes: [
-    { id: '1', label: 'Mitosis' },
-    { id: '2', label: 'Prophase' },
-    { id: '3', label: 'Metaphase' },
-    { id: '4', label: 'Anaphase' }
+    { id: "cb", label: "Cognitive Biases" },
+    { id: "h", label: "Heuristics" }
   ],
   conceptMapEdges: [
-    { source: '1', target: '2' },
-    { source: '1', target: '3' },
-    { source: '1', target: '4' }
+    { source: "cb", target: "h" }
   ]
 };
 
-/**
- * Initial Global State
- */
 export const initialAppState: AppState = {
   neuroPrint: mockNeuroPrint,
   currentSession: undefined,

@@ -14,10 +14,17 @@ export default function ProgressDots({ currentStep, totalSteps, onStepClick, ans
   const steps = Array.from({ length: totalSteps }, (_, i) => i);
 
   return (
-    <div className="w-full max-w-xl flex flex-col items-center gap-8 animate-in slide-in-from-top-4 duration-1000">
+    <div className="w-full flex flex-col items-center gap-6 animate-in fade-in duration-1000">
       
-      {/* Dots Layout */}
-      <div className="flex items-center gap-6">
+      {/* Track Layout */}
+      <div className="relative flex items-center gap-3">
+        {/* Connection Track */}
+        <div className="absolute inset-x-0 h-[1.5px] bg-secondary/20 top-1/2 -translate-y-1/2 z-0" />
+        <div 
+          className="absolute h-[1.5px] bg-primary top-1/2 -translate-y-1/2 z-0 transition-all duration-700 ease-in-out origin-left" 
+          style={{ width: `${(currentStep / (totalSteps - 1)) * 100}%` }}
+        />
+
         {steps.map((step) => {
           const isActive = step === currentStep;
           const isCompleted = answeredSteps[step];
@@ -26,33 +33,40 @@ export default function ProgressDots({ currentStep, totalSteps, onStepClick, ans
             <button 
               key={step} 
               onClick={() => onStepClick(step)}
-              className="relative group p-2 transition-all"
+              className="relative z-10 p-1 transition-all group"
             >
               {/* Dot Wrapper */}
               <div 
                 className={cn(
-                  "relative w-4 h-4 rounded-full transition-all duration-500 ease-out",
+                  "relative w-3.5 h-3.5 rounded-full transition-all duration-700",
                   "border-2",
                   isCompleted 
-                    ? "bg-primary border-primary scale-100" 
+                    ? "bg-primary border-primary shadow-[0_0_10px_rgba(99,102,241,0.4)]" 
                     : isActive 
-                      ? "bg-primary border-primary scale-125 shadow-lg shadow-primary/30"
-                      : "bg-transparent border-foreground/10 scale-90 group-hover:scale-100 group-hover:border-primary/40"
+                      ? "bg-background border-primary scale-125 shadow-lg ring-4 ring-primary/10"
+                      : "bg-background border-border group-hover:border-primary/40 scale-90"
                 )}
               >
+                {/* Active Inner Dot */}
+                {isActive && (
+                  <div className="absolute inset-1 bg-primary rounded-full animate-pulse" />
+                )}
               </div>
 
+              {/* Hover Label */}
+              <div className="absolute top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                <span className="text-[8px] font-bold text-primary/60 uppercase tracking-widest whitespace-nowrap">Level 0{step + 1}</span>
+              </div>
             </button>
           );
         })}
       </div>
 
-      {/* Profile Calibration Text */}
-      <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-primary/40 transition-colors">
-        <span>
-          Step {currentStep + 1} of {totalSteps}
-        </span>
-        <span className="w-1 h-1 rounded-full bg-primary/20" />
+      {/* Progress Label */}
+      <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground/30">
+        <span>Calibration Sequence</span>
+        <span className="w-1 h-1 rounded-full bg-border" />
+        <span className="text-primary/60">{Math.round(((currentStep + 1) / totalSteps) * 100)}% Complete</span>
       </div>
     </div>
   );

@@ -92,12 +92,25 @@ export default function UploadDesk() {
         const result = await mammoth.extractRawText({ arrayBuffer });
         updateItemContent(newItem.id, result.value, 'success');
       } else if (type === 'pdf') {
-        // Simple mock for pdf.js integration - in production use getDocument
-        const reader = new FileReader();
-        reader.onload = (e) => updateItemContent(newItem.id, "[PDF Content Extracted: " + file.name + "]", 'success');
-        reader.readAsText(file);
+        // REAL PDF EXTRACTION using pdfjs-dist
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfjs = await import('pdfjs-dist');
+        // Set worker path for Next.js compatibility
+        pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+        
+        const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+        let fullText = "";
+        
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map((item: any) => item.str).join(" ");
+          fullText += pageText + "\n";
+        }
+        
+        updateItemContent(newItem.id, fullText, 'success');
       } else if (type === 'image' || type === 'audio') {
-        // Base64 storage for visual/audio parts
         const reader = new FileReader();
         reader.onload = (e) => updateItemContent(newItem.id, e.target?.result as string, 'success');
         reader.readAsDataURL(file);
@@ -106,6 +119,7 @@ export default function UploadDesk() {
         updateItemContent(newItem.id, text, 'success');
       }
     } catch (err) {
+      console.error("Extraction Failed:", err);
       updateItemContent(newItem.id, '', 'error');
     }
   };
@@ -188,23 +202,26 @@ export default function UploadDesk() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col pt-0 px-12 pb-12 animate-fade-in-up duration-1000 max-w-7xl mx-auto">
-      <div className="mb-8 space-y-4">
-         <h2 className="text-4xl font-black tracking-tightest uppercase">Upload Workspace</h2>
-         <p className="text-muted-foreground font-bold text-lg opacity-40 uppercase tracking-widest leading-relaxed">
-           Bring your multi-modal context to life.
+    <div className="w-full h-full flex flex-col pt-0 px-8 pb-8 animate-fade-in-up duration-1000 max-w-7xl mx-auto">
+      <div className="mb-10 space-y-3">
+         <h2 className="text-[10px] font-black tracking-[0.4em] text-primary/60 uppercase">System Launchpad</h2>
+         <h1 className="text-4xl md:text-5xl font-[1000] tracking-tightest leading-none">
+            Upload Workspace
+         </h1>
+         <p className="text-muted-foreground font-medium text-lg leading-relaxed tracking-tight max-w-2xl opacity-60">
+            Feed the neural engine with your multi-modal context to synthesize an adaptive study surface.
          </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 flex-1 min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 flex-1 min-h-0">
          {/* Input Section */}
-         <div className="space-y-12">
+         <div className="lg:col-span-7 space-y-10">
             {/* Drag Area */}
             <div 
               onClick={() => fileInputRef.current?.click()}
               className="group relative cursor-pointer"
             >
-               <div className="w-full h-80 rounded-[4rem] border-4 border-dashed border-border/60 bg-secondary/30 flex flex-col items-center justify-center gap-10 hover:border-primary/40 hover:bg-card transition-all duration-700 relative z-10 shadow-2xl overflow-hidden group/desk"
+               <div className="w-full h-72 rounded-3xl border-2 border-dashed border-border/40 bg-secondary/10 flex flex-col items-center justify-center gap-8 hover:border-primary/40 hover:bg-card transition-all duration-700 relative z-10 shadow-sm overflow-hidden group/desk"
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
                     e.preventDefault();
@@ -212,80 +229,90 @@ export default function UploadDesk() {
                     files.forEach(addFile);
                   }}
                >
-                  <div className="w-20 h-20 rounded-[2rem] bg-card border border-border flex items-center justify-center text-primary shadow-inner group-hover/desk:rotate-12 transition-transform duration-700">
+                  <div className="w-16 h-16 rounded-2xl bg-card border border-border/40 flex items-center justify-center text-primary/60 shadow-sm group-hover/desk:scale-110 group-hover/desk:rotate-6 transition-transform duration-700">
                      <IconFile />
                   </div>
                   <div className="text-center">
-                     <p className="text-2xl font-black tracking-tightest">Drop Materials</p>
-                     <p className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/40 mt-3">PDF, DOCX, IMAGES, AUDIO</p>
+                     <p className="text-xl font-bold tracking-tight">Drop Materials</p>
+                     <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/30 mt-3">PDF, DOCX, IMAGES, AUDIO</p>
                   </div>
                   <input type="file" ref={fileInputRef} onChange={(e) => {
                     const files = Array.from(e.target.files || []);
                     files.forEach(addFile);
                   }} className="hidden" multiple />
+                  
+                  {/* Subtle Grain Overlay */}
+                  <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
                </div>
             </div>
 
             {/* Quick Inputs */}
-            <div className="grid grid-cols-1 gap-6">
-               <div className="flex gap-4 p-2 bg-secondary/40 rounded-[2.5rem] border border-border/60 shadow-inner group">
+            <div className="space-y-6">
+               <div className="flex gap-2 p-1.5 bg-secondary/20 rounded-2xl border border-border/20 shadow-inner group">
                   <input 
                     type="text" 
-                    placeholder="Drop external link (https://...)" 
-                    className="flex-1 bg-transparent px-8 py-4 outline-none text-foreground font-bold placeholder:text-muted-foreground/30"
+                    placeholder="External link (https://...)" 
+                    className="flex-1 bg-transparent px-6 py-4 outline-none text-foreground font-semibold placeholder:text-muted-foreground/20 text-sm"
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && addLink()}
                   />
-                  <button onClick={addLink} className="p-4 rounded-[2rem] bg-foreground text-background hover:bg-primary hover:text-white transition-all">
+                  <button onClick={addLink} className="w-12 h-12 rounded-xl bg-foreground text-background hover:bg-primary transition-all flex items-center justify-center">
                      <IconLink />
                   </button>
                </div>
                
-               <div className="p-8 rounded-[3.5rem] bg-secondary/30 border border-border/60 flex flex-col gap-6">
+               <div className="p-6 rounded-[2rem] bg-secondary/10 border border-border/20 flex flex-col gap-4 shadow-sm">
                   <textarea 
-                    placeholder="Paste rapid notes or deep context here..." 
-                    className="w-full h-32 bg-transparent outline-none resize-none text-foreground font-medium text-lg placeholder:text-muted-foreground/30"
+                    placeholder="Paste rapid notes or deep context context here..." 
+                    className="w-full h-32 bg-transparent outline-none resize-none text-foreground font-medium text-md placeholder:text-muted-foreground/20 custom-scrollbar"
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
                   />
-                  <button onClick={addPastedText} className="self-end px-10 py-5 bg-foreground text-background rounded-full font-black text-[10px] tracking-widest hover:scale-105 active:scale-95 transition-all outline-none">
-                     Add Note
-                  </button>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-[0.2em]">Contextual Note</span>
+                    <button onClick={addPastedText} className="px-8 py-3 bg-foreground text-background rounded-xl font-bold text-[10px] tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg">
+                       Add to Stack
+                    </button>
+                  </div>
                </div>
             </div>
          </div>
 
          {/* Shelf & Summary Section */}
-         <div className="flex flex-col gap-10">
-            <div className="flex-1 rounded-[4rem] bg-card/40 border border-border/60 p-12 flex flex-col gap-8 shadow-2xl relative min-h-[400px]">
+         <div className="lg:col-span-5 flex flex-col gap-8">
+            <div className="flex-1 rounded-[2.5rem] bg-card/10 border border-border/20 p-10 flex flex-col gap-8 shadow-sm relative min-h-[400px] glass-silk">
                <div className="flex justify-between items-center">
-                  <h3 className="text-[10px] font-black tracking-[0.4em] text-muted-foreground/30 uppercase">Current Inventory</h3>
-                  <span className="text-[10px] font-black text-primary">{items.length} Items</span>
+                  <h3 className="text-[10px] font-black tracking-[0.4em] text-primary/40 uppercase">Inventory Cache</h3>
+                  <div className="px-3 py-1 rounded-full bg-primary/10 text-[9px] font-bold text-primary tracking-widest uppercase">
+                    {items.length} Units
+                  </div>
                </div>
 
-               <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4">
+               <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3">
                   {items.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center opacity-20 text-center gap-6">
-                       <p className="text-sm font-bold">Your shelf is empty.</p>
-                       <p className="text-[10px] font-black tracking-[0.2em]">Add files to begin.</p>
+                    <div className="h-full flex flex-col items-center justify-center opacity-30 text-center gap-4">
+                       <div className="w-12 h-12 rounded-full border border-dashed border-muted-foreground/40 flex items-center justify-center text-xl">🛒</div>
+                       <p className="text-[10px] font-bold tracking-[0.2em] uppercase">Empty Stack</p>
                     </div>
                   ) : (
                     items.map((item) => (
-                      <div key={item.id} className="group flex items-center justify-between p-6 rounded-[2.5rem] bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-all animate-in slide-in-from-right-8 duration-500">
-                        <div className="flex items-center gap-6">
-                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg ${
+                      <div key={item.id} className="group flex items-center justify-between p-4 rounded-2xl bg-secondary/10 border border-border/10 hover:border-primary/20 hover:bg-secondary/20 transition-all animate-in slide-in-from-right-4">
+                        <div className="flex items-center gap-4">
+                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm ${
                               item.status === 'processing' ? 'animate-pulse bg-primary/20 text-primary' :
-                              item.status === 'error' ? 'bg-red-500/20 text-red-500' : 'bg-card text-foreground'
+                              item.status === 'error' ? 'bg-red-500/20 text-red-500' : 'bg-card text-foreground/60'
                            }`}>
                               {item.type === 'pdf' ? '📄' : item.type === 'docx' ? '📘' : item.type === 'image' ? '🖼️' : item.type === 'audio' ? '🔊' : item.type === 'link' ? '🔗' : '📝'}
                            </div>
-                           <div className="space-y-1">
-                              <p className="text-sm font-black tracking-tight max-w-[200px] truncate">{item.name}</p>
-                              <p className="text-[9px] font-bold text-muted-foreground/40">{item.status === 'processing' ? 'Syncing...' : (item.size / 1024).toFixed(0) + 'KB'}</p>
+                           <div className="space-y-0.5">
+                              <p className="text-xs font-bold tracking-tight max-w-[160px] truncate">{item.name}</p>
+                              <p className="text-[9px] font-medium text-muted-foreground/30 uppercase tracking-tighter">
+                                {item.status === 'processing' ? 'Syncing...' : (item.size / 1024).toFixed(0) + 'KB'}
+                              </p>
                            </div>
                         </div>
-                        <button onClick={() => removeItem(item.id)} className="p-3 rounded-xl hover:bg-red-500/10 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100">
+                        <button onClick={() => removeItem(item.id)} className="p-2 rounded-lg hover:bg-red-500/10 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100">
                            <IconX />
                         </button>
                       </div>
@@ -293,14 +320,14 @@ export default function UploadDesk() {
                   )}
                </div>
 
-               <div className="pt-8 border-t border-border/30 space-y-5">
-                  <div className="flex justify-between text-[10px] font-black tracking-widest">
-                     <span className="text-muted-foreground/40">SESSION USAGE</span>
+               <div className="pt-8 border-t border-border/10 space-y-4">
+                  <div className="flex justify-between text-[9px] font-bold tracking-[0.2em] text-muted-foreground/40 uppercase">
+                     <span>Load Intensity</span>
                      <span className={usagePercentage > 90 ? 'text-red-500' : 'text-primary'}>
-                        {(currentUsageBytes / (1024 * 1024)).toFixed(1)}MB / {SESSION_LIMIT_MB}MB
+                        {usagePercentage.toFixed(1)}% Capacity
                      </span>
                   </div>
-                  <div className="h-2 w-full bg-secondary rounded-full overflow-hidden p-[1px] shadow-inner">
+                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden p-[1px]">
                      <div 
                        className={`h-full rounded-full transition-all duration-1000 ${usagePercentage > 90 ? 'bg-red-500' : 'bg-primary'}`} 
                        style={{ width: `${usagePercentage}%` }}
@@ -310,7 +337,7 @@ export default function UploadDesk() {
             </div>
 
             {errorMessage && (
-              <div className="p-6 rounded-[2rem] bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold animate-in shake duration-500">
+              <div className="p-5 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-500 text-[10px] font-bold tracking-tight animate-in shake">
                 {errorMessage}
               </div>
             )}
@@ -318,19 +345,19 @@ export default function UploadDesk() {
             <button 
               disabled={isProcessingAll || items.filter(i => i.status === 'success').length === 0}
               onClick={processAll}
-              className={`group w-full py-5 rounded-[2.5rem] font-black text-xs tracking-[0.3em] flex items-center justify-center gap-6 transition-all relative overflow-hidden ${
-                isProcessingAll ? 'bg-secondary text-muted-foreground cursor-not-allowed' : 'bg-foreground text-background hover:scale-[1.02] shadow-premium uppercase'
+              className={`group w-full py-5 rounded-2xl font-bold text-[10px] tracking-[0.4em] flex items-center justify-center gap-6 transition-all relative overflow-hidden ${
+                isProcessingAll ? 'bg-secondary text-muted-foreground cursor-not-allowed' : 'bg-foreground text-background hover:scale-[1.02] shadow-xl uppercase'
               }`}
             >
                {isProcessingAll ? (
                  <>
-                   <div className="w-6 h-6 border-4 border-muted-foreground border-t-transparent rounded-full animate-spin" />
-                   Neural Processing Active...
+                   <div className="w-5 h-5 border-3 border-muted-foreground border-t-transparent rounded-full animate-spin" />
+                   Synthesizing Matrix
                  </>
                ) : (
                  <>
                     Process Matrix
-                    <div className="group-hover:translate-x-2 transition-transform duration-500">
+                    <div className="group-hover:translate-x-1.5 group-hover:-translate-y-0.5 transition-transform duration-500">
                        <IconZap />
                     </div>
                  </>

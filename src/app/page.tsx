@@ -17,80 +17,85 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen relative flex flex-col items-center justify-center p-12 overflow-hidden bg-background">
-      {/* Dynamic Background */}
-      <div className="absolute inset-0 z-0 bg-background pointer-events-none">
-         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-float" />
-         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full animate-float delay-1000" />
+    <main className="min-h-screen relative flex flex-col items-center justify-center p-8 md:p-12 overflow-hidden bg-background">
+      {/* Background Mesh */}
+      <div className="absolute inset-0 z-0 opacity-50 dark:opacity-40">
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-primary/20 blur-[140px] rounded-full animate-float" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[140px] rounded-full animate-float-delayed" />
       </div>
 
-      {/* Floating Theme Toggle */}
-      <div className="fixed top-12 right-12 z-50">
-         <button 
-           onClick={toggleTheme}
-           className="w-14 h-14 rounded-2xl glass-silk border border-border/50 flex items-center justify-center hover:scale-110 active:scale-90 transition-all shadow-premium"
-         >
-           {isDark ? <IconSun /> : <IconMoon />}
-         </button>
-      </div>
+      {/* Navigation */}
+      <nav className="fixed top-8 left-8 right-8 z-50 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center text-xl shadow-premium">✨</div>
+          <span className="text-xl font-bold tracking-tighter">Nuro</span>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full border border-border/40 bg-secondary/20 backdrop-blur-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <span className="text-[9px] font-bold tracking-[0.2em] text-muted-foreground/60 uppercase">Gemini 2.5 Active</span>
+          </div>
+          <button 
+            onClick={toggleTheme}
+            className="w-12 h-12 rounded-xl glass-silk border border-border/40 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-premium"
+          >
+            {isDark ? <IconSun /> : <IconMoon />}
+          </button>
+        </div>
+      </nav>
 
-      <section className="relative z-10 w-full max-w-5xl flex flex-col items-center text-center space-y-14 animate-fade-in-up">
-         <div className="flex flex-col items-center gap-10">
-            <div className="w-24 h-24 rounded-[2.5rem] bg-foreground text-background flex items-center justify-center text-5xl shadow-premium animate-float ring-8 ring-primary/5">
-               ✨
-            </div>
-            
-            <div className="space-y-6">
-               <h1 className="text-[120px] md:text-[160px] font-[1000] tracking-tightest leading-[0.85] text-shimmer">
-                  Nuro
-               </h1>
-               <div className="flex items-center justify-center gap-4">
-                  <div className="h-px w-12 bg-border/60" />
-                  <span className="text-[11px] font-black tracking-[0.5em] text-muted-foreground/40 uppercase">
-                     Adaptive Study Companion
-                  </span>
-                  <div className="h-px w-12 bg-border/60" />
-               </div>
+      <section className="relative z-10 w-full max-w-6xl flex flex-col items-center text-center space-y-16 animate-fade-in-up">
+         {/* Hero Header */}
+         <div className="space-y-8">
+            <h1 className="text-[14vw] md:text-[160px] font-[1000] tracking-tightest leading-[0.8] text-shimmer select-none">
+               Nuro
+            </h1>
+            <div className="flex flex-col items-center gap-4">
+               <span className="text-[11px] font-black tracking-[0.6em] text-primary uppercase opacity-60">
+                 Neural Synthesis Engine
+               </span>
+               <div className="h-0.5 w-16 bg-primary/20 rounded-full" />
             </div>
          </div>
 
-         <div className="space-y-12 max-w-2xl px-6">
-            <p className="text-2xl md:text-3xl font-bold tracking-tight text-foreground/80 leading-relaxed selection:bg-primary/20">
-               Build a digital map of your brain. <br />
+         {/* Hero Text */}
+         <div className="space-y-8 max-w-3xl">
+            <p className="text-3xl md:text-5xl font-bold tracking-tight text-foreground/90 lg:leading-[1.15] selection:bg-primary/20">
+               Build a digital map of your brain. <br className="hidden md:block" />
                Experience academic context that breathes.
             </p>
-            <p className="text-lg font-medium text-muted-foreground/60 leading-relaxed tracking-tight">
-               Privacy as a standard. Context as a flow. <br />
-               Linear synthesis without tracking or databases.
+            <p className="text-lg md:text-xl font-medium text-muted-foreground/50 leading-relaxed tracking-tight max-w-xl mx-auto italic">
+               The world&apos;s first adaptive study surface powered by deep behavioral learner signatures.
             </p>
          </div>
 
-         <div className="flex flex-col items-center gap-10 w-full max-w-md">
+         {/* CTA Section */}
+         <div className="flex flex-col items-center gap-12 w-full max-w-sm">
             <Link 
               href="/onboarding"
-              className="group w-full py-8 px-10 rounded-[4rem] bg-foreground text-background font-black text-2xl shadow-premium hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-6 relative overflow-hidden"
+              className="group w-full py-7 px-10 rounded-2xl bg-foreground text-background font-bold text-xl shadow-[0_20px_40px_rgba(0,0,0,0.1)] hover:shadow-[0_30px_60px_rgba(0,0,0,0.2)] dark:shadow-none hover:scale-[1.03] active:scale-95 transition-all flex items-center justify-center gap-6 relative overflow-hidden"
             >
                <span className="relative z-10">Start Analyzing</span>
-               <div className="relative z-10 group-hover:translate-x-3 transition-transform duration-500">
+               <div className="relative z-10 group-hover:translate-x-2 transition-transform duration-500">
                   <IconArrowRight />
                </div>
-               <div className="absolute inset-x-0 h-full bg-primary/20 scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-700" />
+               <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
             </Link>
 
-            <div className="flex items-center gap-4 px-6 py-3 rounded-full border border-border/60 bg-secondary/30 backdrop-blur-md">
-               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-               <span className="text-[10px] font-black tracking-[0.3em] text-muted-foreground/40 uppercase">
-                  Session locked • Ephemeral Memory only
-               </span>
+            <div className="flex items-center gap-6 text-[10px] font-bold tracking-widest text-muted-foreground/30 uppercase">
+               <span>Ephemeral Storage</span>
+               <div className="w-1 h-1 rounded-full bg-border" />
+               <span>Zero Database</span>
+               <div className="w-1 h-1 rounded-full bg-border" />
+               <span>GDG UTSC AI 2026</span>
             </div>
          </div>
       </section>
 
-      {/* Visual Accents */}
-      <div className="fixed bottom-0 left-0 right-0 p-12 flex justify-between items-center pointer-events-none opacity-20 transform translate-y-4">
-         <span className="text-[10px] font-black tracking-widest text-muted-foreground">GDG UTSC AI 2026</span>
-         <span className="text-[10px] font-black tracking-widest text-muted-foreground italic">Silicon Valley Gloss Design System</span>
-      </div>
+      {/* Decorative Blobs */}
+      <div className="fixed bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
+      <div className="fixed top-[20%] right-[-5%] w-[30%] h-[30%] bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
     </main>
   );
 }

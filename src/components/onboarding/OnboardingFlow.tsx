@@ -21,6 +21,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [maxStepReached, setMaxStepReached] = useState(0);
   const [history, setHistory] = useState<Record<number, StepState>>({});
+  const [isCalibrating, setIsCalibrating] = useState(false);
 
   const currentQuestion = SURVEY_QUESTIONS[currentStep];
 
@@ -77,11 +78,26 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < SURVEY_QUESTIONS.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
-      onComplete(calculateVector(totalDeltas));
+      setIsCalibrating(true);
+      try {
+        const res = await fetch('/api/gemini/analyze-onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ history, questions: SURVEY_QUESTIONS })
+        });
+        const vector = await res.json();
+        onComplete(vector);
+      } catch (error) {
+        console.error("Calibration error:", error);
+        // Fallback to static if API fails
+        onComplete(calculateVector(totalDeltas));
+      } finally {
+        setIsCalibrating(false);
+      }
     }
   };
 
@@ -189,15 +205,15 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               <div className="flex justify-center">
                 <button
                   onClick={handleNext}
-                  disabled={!isNextEnabled}
+                  disabled={!isNextEnabled || isCalibrating}
                   className={cn(
                     "px-10 py-3 rounded-full font-bold transition-all duration-300 uppercase tracking-[0.2em] text-[10px]",
-                    isNextEnabled 
+                    isNextEnabled && !isCalibrating
                       ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 active:scale-95" 
                       : "bg-foreground/5 text-foreground/20 border border-foreground/5 cursor-not-allowed opacity-50"
                   )}
                 >
-                  Finish & Calibrate
+                  {isCalibrating ? "Calibrating Digital Brain..." : "Finish & Calibrate"}
                 </button>
               </div>
             )}
