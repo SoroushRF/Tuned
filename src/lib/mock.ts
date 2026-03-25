@@ -114,5 +114,4 @@ export const initialAppState: AppState = {
   currentSession: undefined,
   isLoading: false,
   streak: 0,
-  theme: 'dark'
 };

@@ -7,36 +7,11 @@ import LayoutController from '@/components/StudySurface/LayoutController';
 import NeuroPrintProfile from '@/components/Profile/NeuroPrintProfile';
 import UploadDesk from '@/components/Upload/UploadDesk';
 
-const IconMoon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-  </svg>
-);
-
-const IconSun = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="4" />
-    <path d="M12 2v2" />
-    <path d="M12 20v2" />
-    <path d="M4.93 4.93l1.41 1.41" />
-    <path d="M17.66 17.66l1.41 1.41" />
-    <path d="M2 12h2" />
-    <path d="M20 12h2" />
-    <path d="M4.93 19.07l1.41-1.41" />
-    <path d="M17.66 6.34l1.41-1.41" />
-  </svg>
-);
-
 export default function StudyPage() {
-  const { state, dispatch } = useAppContext();
-  const { neuroPrint, currentSession, isLoading, theme } = state;
-  const isDark = theme === 'dark';
+  const { state } = useAppContext();
+  const { neuroPrint, currentSession, isLoading } = state;
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'workspace' | 'upload'>(currentSession ? 'workspace' : 'upload');
-
-  const toggleTheme = () => {
-    dispatch({ type: 'SET_THEME', payload: isDark ? 'light' : 'dark' });
-  };
 
   React.useEffect(() => {
     if (currentSession) {
@@ -56,13 +31,6 @@ export default function StudyPage() {
 
         <div className="flex items-center gap-3 md:gap-6">
           <div className="flex items-center gap-3">
-            <button
-              onClick={toggleTheme}
-              className="w-10 h-10 rounded-xl bg-card border border-border/40 flex items-center justify-center hover:bg-secondary transition-all active:translate-y-[1px] shadow-sm"
-            >
-              {isDark ? <IconSun /> : <IconMoon />}
-            </button>
-
             <button
               onClick={() => setIsProfileOpen(true)}
               className="w-10 h-10 rounded-xl bg-card border border-border/40 flex items-center justify-center cursor-pointer hover:bg-secondary transition-all active:translate-y-[1px] shadow-sm relative group"

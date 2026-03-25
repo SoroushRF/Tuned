@@ -1,25 +1,18 @@
-'use client';
-
-import React from 'react';
+import { Patrick_Hand } from 'next/font/google';
 import Link from 'next/link';
-import { useAppContext } from '@/store/context';
 
-const IconMoon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>;
-const IconSun = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M4.93 19.07l1.41-1.41"/><path d="M17.66 6.34l1.41-1.41"/></svg>;
 const IconArrowRight = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>;
 
+const handwriting = Patrick_Hand({
+  subsets: ['latin'],
+  weight: ['400'],
+});
+
 export default function Home() {
-  const { state, dispatch } = useAppContext();
-  const isDark = state.theme === 'dark';
-
-  const toggleTheme = () => {
-    dispatch({ type: 'SET_THEME', payload: isDark ? 'light' : 'dark' });
-  };
-
   return (
-    <main className="min-h-screen relative flex flex-col items-center justify-center p-8 md:p-12 overflow-hidden bg-background">
+    <main className="min-h-screen relative p-8 md:p-12 overflow-hidden bg-background">
       {/* Background Mesh */}
-      <div className="absolute inset-0 z-0 opacity-50 dark:opacity-40">
+      <div className="absolute inset-0 z-0 opacity-50">
         <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-primary/10 blur-[140px] rounded-full animate-float" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/5 blur-[140px] rounded-full animate-float-delayed" />
       </div>
@@ -32,45 +25,47 @@ export default function Home() {
         </div>
         
         <div className="flex items-center gap-4">
-          <button 
-            onClick={toggleTheme}
-            className="w-12 h-12 rounded-xl glass-silk border border-border/40 flex items-center justify-center hover:shadow-md active:translate-y-[1px] transition-all shadow-premium"
-          >
-            {isDark ? <IconSun /> : <IconMoon />}
-          </button>
+          {/* Dark mode toggle removed */}
         </div>
       </nav>
 
-      <section className="relative z-10 w-full max-w-6xl flex flex-col items-center text-center space-y-16 animate-fade-in-up">
-         {/* Hero Header */}
-         <div className="space-y-8">
+      <section className="relative z-10 w-full max-w-6xl mx-auto pt-24 min-h-[calc(100vh-160px)] flex items-center animate-fade-in-up">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-24 items-center">
+          {/* Left hero */}
+          <div className="md:col-span-7 space-y-10 text-left">
             <h1 className="text-[14vw] md:text-[160px] font-[1000] tracking-tightest leading-[0.8] text-foreground select-none">
-               Tuned
+              Tuned
             </h1>
-         </div>
 
-         {/* Hero Text */}
-         <div className="space-y-8 max-w-3xl">
-            <p className="text-3xl md:text-5xl font-bold tracking-tight text-foreground/88 lg:leading-[1.15] selection:bg-primary/15">
-               Study smarter. <br className="hidden md:block" />
-               Stay Tuned.
-            </p>
-            <p className="text-lg md:text-xl font-medium text-muted-foreground/70 leading-relaxed tracking-tight max-w-xl mx-auto italic">
-               One place to focus, learn, and move faster.
-            </p>
-         </div>
+            <div className="space-y-6 max-w-2xl">
+              <p
+                className={`${handwriting.className} text-3xl md:text-5xl font-semibold tracking-tight text-foreground/88 lg:leading-[1.05] selection:bg-primary/15`}
+              >
+                Study smarter.
+                <br className="hidden md:block" />
+                Stay Tuned.
+              </p>
 
-         {/* CTA Section */}
-         <div className="flex flex-col items-center gap-12 w-full max-w-sm">
-            <Link 
-              href="/onboarding"
-              className="group w-full py-7 px-10 rounded-2xl bg-foreground text-background font-bold text-xl shadow-[0_12px_24px_rgba(0,0,0,0.08)] hover:shadow-[0_16px_28px_rgba(0,0,0,0.12)] dark:shadow-none active:translate-y-[1px] transition-all flex items-center justify-center gap-4 relative overflow-hidden"
-            >
-               <span className="relative z-10">Get Started</span>
-               <div className="relative z-10">
+              <p className="text-lg md:text-xl font-medium text-muted-foreground/70 leading-relaxed tracking-tight max-w-xl italic">
+                One place to focus, learn, and move faster.
+              </p>
+            </div>
+          </div>
+
+          {/* Right CTA */}
+          <div className="md:col-span-5 flex justify-end">
+            <div className="flex flex-col items-start gap-10">
+              <Link
+                href="/onboarding"
+                className="group w-full md:w-[340px] py-7 px-10 rounded-2xl bg-foreground text-background font-bold text-xl shadow-[0_12px_24px_rgba(0,0,0,0.08)] hover:shadow-[0_16px_28px_rgba(0,0,0,0.12)] active:translate-y-[1px] transition-all flex items-center justify-center gap-4 relative overflow-hidden"
+              >
+                <span className="relative z-10">Get Started</span>
+                <div className="relative z-10">
                   <IconArrowRight />
-               </div>
-            </Link>
+                </div>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
