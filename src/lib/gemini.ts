@@ -9,11 +9,23 @@ import { NeuroPrintVector, ProcessedOutput } from "@/types";
  * Calls the secure backend API with the NeuroPrint context.
  */
 export async function transformContent(text: string, vector: NeuroPrintVector): Promise<ProcessedOutput> {
+  return transformContentWithPdf(text, vector, []);
+}
+
+export async function transformContentWithPdf(
+  text: string,
+  vector: NeuroPrintVector,
+  pdfFiles: File[] = []
+): Promise<ProcessedOutput> {
   try {
+    const formData = new FormData();
+    formData.append('text', text);
+    formData.append('vector', JSON.stringify(vector));
+    pdfFiles.forEach((file) => formData.append('pdfs', file, file.name));
+
     const res = await fetch('/api/gemini/process', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, vector })
+      body: formData
     });
 
     if (!res.ok) throw new Error("Failed to process content via backend.");

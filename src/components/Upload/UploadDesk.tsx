@@ -2,13 +2,9 @@
 
 import React, { useState, useRef, useMemo } from 'react';
 import { useAppContext } from '@/store/context';
-import { transformContent } from '@/lib/gemini';
+import { transformContentWithPdf } from '@/lib/gemini';
 import { useRouter } from 'next/navigation';
 import * as mammoth from 'mammoth';
-
-// PDF.js worker setup is usually done in a separate file or via CDN in Next.js
-// For the sake of the demo, we assume pdfjs is available or shimmed in simple terms
-// Real-world: window.pdfjsLib.getDocument(...)
 
 interface UploadItem {
   id: string;
@@ -16,6 +12,7 @@ interface UploadItem {
   type: 'pdf' | 'docx' | 'image' | 'audio' | 'text' | 'link';
   size: number; // bytes
   content: string; // extracted text or base64 data
+  file?: File; // raw file for direct Gemini upload
   status: 'pending' | 'processing' | 'success' | 'error';
 }
 
@@ -79,6 +76,7 @@ export default function UploadDesk() {
       type,
       size: file.size,
       content: '', // Extract after
+      file: type === 'pdf' ? file : undefined,
       status: 'pending'
     };
 
@@ -87,29 +85,13 @@ export default function UploadDesk() {
 
     // Extraction Logic
     try {
-      if (type === 'docx') {
+      if (type === 'pdf') {
+        // Keep the raw PDF intact so Gemini can read text + images directly.
+        updateItemContent(newItem.id, '', 'success');
+      } else if (type === 'docx') {
         const arrayBuffer = await file.arrayBuffer();
         const result = await mammoth.extractRawText({ arrayBuffer });
         updateItemContent(newItem.id, result.value, 'success');
-      } else if (type === 'pdf') {
-        // REAL PDF EXTRACTION using pdfjs-dist
-        const arrayBuffer = await file.arrayBuffer();
-        const pdfjs = await import('pdfjs-dist');
-        // Set worker path for Next.js compatibility
-        pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
-        
-        const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
-        const pdf = await loadingTask.promise;
-        let fullText = "";
-        
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items.map((item: any) => item.str).join(" ");
-          fullText += pageText + "\n";
-        }
-        
-        updateItemContent(newItem.id, fullText, 'success');
       } else if (type === 'image' || type === 'audio') {
         const reader = new FileReader();
         reader.onload = (e) => updateItemContent(newItem.id, e.target?.result as string, 'success');
@@ -187,12 +169,16 @@ export default function UploadDesk() {
 
     // Roll up all success content
     const combinedText = items
-      .filter(i => i.status === 'success' && (i.type === 'text' || i.type === 'link' || i.type === 'pdf' || i.type === 'docx'))
+      .filter(i => i.status === 'success' && (i.type === 'text' || i.type === 'link' || i.type === 'docx'))
       .map(i => `[Source: ${i.name}]\n${i.content}`)
       .join('\n\n');
 
+    const pdfFiles = items
+      .filter(i => i.status === 'success' && i.type === 'pdf' && i.file)
+      .map(i => i.file as File);
+
     try {
-      const result = await transformContent(combinedText, state.neuroPrint);
+      const result = await transformContentWithPdf(combinedText, state.neuroPrint, pdfFiles);
       dispatch({ type: 'SET_SESSION', payload: result });
       router.push('/study');
     } catch (err) {

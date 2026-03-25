@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { createPartFromUri, GoogleGenAI } from "@google/genai";
 import { NeuroPrintVector } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -35,9 +35,28 @@ export async function POST(req: NextRequest) {
   const requestId = createGeminiDebugId("process");
   const startedAt = Date.now();
   try {
-    const { text, vector } = (await req.json()) as { text: string; vector: NeuroPrintVector };
+    const contentType = req.headers.get("content-type") || "";
+    let text = "";
+    let vector: NeuroPrintVector | null = null;
+    const pdfFiles: File[] = [];
 
-    if (!text || !vector) {
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      text = String(formData.get("text") || "");
+      const vectorRaw = String(formData.get("vector") || "");
+      vector = vectorRaw ? (JSON.parse(vectorRaw) as NeuroPrintVector) : null;
+      formData.getAll("pdfs").forEach((value) => {
+        if (value instanceof File) {
+          pdfFiles.push(value);
+        }
+      });
+    } else {
+      const body = (await req.json()) as { text: string; vector: NeuroPrintVector };
+      text = body.text;
+      vector = body.vector;
+    }
+
+    if ((!text && pdfFiles.length === 0) || !vector) {
       console.error("Nuro Error: Input context or profile vector is missing.");
       return NextResponse.json({ error: "Context or Vector missing" }, { status: 400 });
     }
@@ -51,6 +70,8 @@ export async function POST(req: NextRequest) {
       textLength: text.length,
       textPreview: summarizeText(text, 500),
       vector,
+      pdfCount: pdfFiles.length,
+      pdfNames: pdfFiles.map((file) => file.name),
       model: "gemini-1.5-flash",
     });
 
@@ -103,15 +124,42 @@ export async function POST(req: NextRequest) {
     const finalPrompt = `
       INPUT MATERIAL:
       "${text.substring(0, 15000)}"
+      ${text.trim() ? "" : "No extra text sources were provided. Use the uploaded PDF files as the primary source."}
 
       Transform this into the requested JSON. 
       CRITICAL: OUTPUT JSON ONLY. NO MARKDOWN.
     `;
 
+    const uploadedPdfParts = [];
+    for (const pdfFile of pdfFiles) {
+      const uploaded = await ai.files.upload({
+        file: pdfFile,
+        config: {
+          displayName: pdfFile.name,
+          mimeType: pdfFile.type || "application/pdf",
+        },
+      });
+
+      let fileRecord = uploaded;
+      while (fileRecord.state !== "ACTIVE" && fileRecord.state !== "FAILED") {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        fileRecord = await ai.files.get({ name: fileRecord.name });
+      }
+
+      if (fileRecord.state === "FAILED") {
+        throw new Error(`Failed to upload PDF: ${pdfFile.name}`);
+      }
+
+      uploadedPdfParts.push(createPartFromUri(fileRecord.uri!, fileRecord.mimeType!));
+    }
+
     // 3. System Synthesis
     const response = await ai.models.generateContent({
       model: "gemini-1.5-flash", 
-      contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
+      contents: [{
+        role: "user",
+        parts: [{ text: finalPrompt }, ...uploadedPdfParts],
+      }],
       config: {
         systemInstruction: { parts: [{ text: systemInstructionContent }] },
         responseMimeType: "application/json",
