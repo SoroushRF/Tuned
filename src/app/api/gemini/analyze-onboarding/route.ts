@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { GEMINI_FAST_MODEL } from "@/lib/gemini/models";
 import { SurveyQuestion } from "@/types";
 import {
   createGeminiDebugId,
@@ -47,12 +48,12 @@ export async function POST(req: NextRequest) {
       answersCount: Object.keys(history || {}).length,
       contextLength: context.length,
       contextPreview: summarizeText(context, 700),
-      model: "gemini-2.5-flash",
+      model: GEMINI_FAST_MODEL,
     });
 
     const ai = genAI;
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: GEMINI_FAST_MODEL,
       contents: [{
         role: "user",
         parts: [{ text: context }]

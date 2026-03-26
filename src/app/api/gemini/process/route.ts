@@ -1,4 +1,5 @@
 import { createPartFromUri, GoogleGenAI } from "@google/genai";
+import { GEMINI_CORE_MODEL } from "@/lib/gemini/models";
 import { NeuroPrintVector, SprintCard, ScholarContent, PodcastScript } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -206,7 +207,7 @@ export async function POST(req: NextRequest) {
       imageNames: imageFiles.map((file) => file.name),
       scholarSourceCount: scholarBundle.sourceCount,
       scholarChunkCount: scholarBundle.chunkCount,
-      model: "gemini-2.5-flash",
+      model: GEMINI_CORE_MODEL,
     });
 
     // 1. Build Personality Traits from Vector
@@ -347,7 +348,7 @@ export async function POST(req: NextRequest) {
     // 3. System Synthesis
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const responsePromise = ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: GEMINI_CORE_MODEL,
       contents: [{
         role: "user",
         parts: [{ text: finalPrompt }, ...uploadedPdfParts, ...uploadedImageParts],

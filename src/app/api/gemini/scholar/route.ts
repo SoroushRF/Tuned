@@ -1,4 +1,5 @@
 import { createPartFromUri, GoogleGenAI } from '@google/genai';
+import { GEMINI_CORE_MODEL } from "@/lib/gemini/models";
 import { NextResponse } from 'next/server';
 import { SCHOLAR_PROMPT } from '@/prompts/scholar';
 import { ScholarChunk, ScholarContent } from '@/types';
@@ -107,7 +108,7 @@ export async function POST(req: Request) {
       scholarSourceCount: scholarBundle.sourceCount,
       scholarChunkCount: scholarBundle.chunkCount,
       route: 'scholar',
-      model: 'gemini-2.5-flash',
+      model: GEMINI_CORE_MODEL,
     });
 
     const uploadedPdfParts = [];
@@ -141,7 +142,7 @@ export async function POST(req: Request) {
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: GEMINI_CORE_MODEL,
       contents: [{
         role: 'user',
         parts: [{ text: SCHOLAR_PROMPT.replace('{{CONTENT}}', promptContent) }, ...uploadedPdfParts],

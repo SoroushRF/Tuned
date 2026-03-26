@@ -82,9 +82,9 @@ A settings page requires self-awareness ("I am an ADHD learner") and conscious c
 
 | Model | Use Case | Why |
 |---|---|---|
-| `gemini-2.5-pro-preview` | Onboarding analysis, full content processing, quiz generation, Socratic tutor | Highest capability, 1M context, native multimodal (text, image, audio, PDF) |
-| `gemini-2.5-flash` | Streaming quiz scoring, profile delta updates, tooltip generation, fast transforms | Low latency, low cost, 1M context — "reflex" operations |
-| `gemini-2.5-flash-lite` | Fallback for high-volume low-stakes calls | Cheapest, fastest in the family |
+| `gemini-3-flash-preview` | **Synthesis Engine** — Processing PDFs, images, and heavy transformations | Balanced high-reasoning vs speed |
+| `gemini-3.1-flash-lite-preview` | **Reflex Engine** — Quick quizzes, onboarding analysis, sprints | Lowest latency, highest speed in 2026 family |
+| `gemini-2.5-flash-preview-tts` | **Audio Engine** — High-quality Text-to-Speech generation | Specialized for audio modality outputs |
 
 **Why Gemini over OpenAI or Claude for this project:**
 - Native PDF and image input without preprocessing — critical for multi-upload pipeline

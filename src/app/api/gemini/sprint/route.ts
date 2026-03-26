@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
+import { GEMINI_FAST_MODEL } from "@/lib/gemini/models";
 import { SPRINT_PROMPT } from '@/prompts/sprint';
 import { SprintCard } from '@/types';
 import {
@@ -105,13 +106,13 @@ export async function POST(req: Request) {
       paragraphCount: compacted.paragraphCount,
       truncated: compacted.truncated,
       contentPreview: summarizeText(compacted.content, 500),
-      model: 'gemini-2.5-flash',
+      model: GEMINI_FAST_MODEL,
     });
 
     const filledPrompt = SPRINT_PROMPT.replace('{{CONTENT}}', compacted.content);
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", 
+      model: GEMINI_FAST_MODEL, 
       contents: [{ role: 'user', parts: [{ text: filledPrompt }] }],
       config: {
         responseMimeType: "application/json"

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
+import { GEMINI_AUDIO_MODEL } from "@/lib/gemini/models";
 import { PodcastScript } from '@/types';
 import {
   createGeminiDebugId,
@@ -11,7 +12,7 @@ import {
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
-const AUDIO_MODEL = 'gemini-2.5-flash-preview-tts';
+const AUDIO_MODEL = GEMINI_AUDIO_MODEL;
 const SAMPLE_RATE = 24000;
 const CHANNELS = 1;
 const BITS_PER_SAMPLE = 16;

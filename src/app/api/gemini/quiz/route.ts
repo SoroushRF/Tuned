@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
+import { GEMINI_FAST_MODEL } from "@/lib/gemini/models";
 import { QUIZ_GEN_PROMPT } from '@/prompts/quiz';
 import { QuizQuestion } from '@/types';
 import {
@@ -25,13 +26,13 @@ export async function POST(req: Request) {
     logGeminiRequest('quiz', requestId, {
       contentLength: content.length,
       contentPreview: summarizeText(content, 500),
-      model: 'gemini-2.5-flash',
+      model: GEMINI_FAST_MODEL,
     });
 
     const filledPrompt = QUIZ_GEN_PROMPT.replace('{{CONTENT}}', content);
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", 
+      model: GEMINI_FAST_MODEL, 
       contents: [{ role: 'user', parts: [{ text: filledPrompt }] }],
       config: {
         responseMimeType: "application/json"
