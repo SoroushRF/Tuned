@@ -12,7 +12,6 @@ interface ProgressDotsProps {
 
 export default function ProgressDots({ currentStep, totalSteps, onStepClick, answeredSteps }: ProgressDotsProps) {
   const steps = Array.from({ length: totalSteps }, (_, i) => i);
-  const lastCompletedStep = steps.reduce((last, step) => (answeredSteps[step] ? step : last), -1);
   const denom = Math.max(totalSteps - 1, 1);
 
   return (
@@ -24,18 +23,18 @@ export default function ProgressDots({ currentStep, totalSteps, onStepClick, ans
         <div className="absolute inset-x-0 h-[1.5px] bg-secondary/20 top-1/2 -translate-y-1/2 z-0" />
         <div 
           className="absolute h-[1.5px] bg-primary top-1/2 -translate-y-1/2 z-0 transition-all duration-500 ease-in-out origin-left"
-          style={{ width: `${(Math.min(lastCompletedStep + 1, denom) / denom) * 100}%` }}
+          style={{ width: `${(currentStep / denom) * 100}%` }}
         />
 
         {steps.map((step) => {
           const isActive = step === currentStep;
-          const isCompleted = answeredSteps[step];
+          const isCompleted = answeredSteps[step] && step < currentStep;
 
           return (
             <button 
               key={step} 
               onClick={() => onStepClick(step)}
-              className="relative z-10 p-1 transition-all group"
+              className="relative z-10 p-1 transition-all"
             >
               {/* Dot Wrapper */}
               <div 
@@ -54,6 +53,8 @@ export default function ProgressDots({ currentStep, totalSteps, onStepClick, ans
                   <div className="absolute inset-1 bg-primary rounded-full" />
                 )}
               </div>
+
+
             </button>
           );
         })}
