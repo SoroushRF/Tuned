@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ScholarContent } from '@/types';
 import { useScholar } from '@/hooks/useScholar';
 
@@ -83,40 +84,107 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
 
   const [definitionAnchorRect, setDefinitionAnchorRect] = useState<DOMRect | null>(null);
   const definitionCardRef = useRef<HTMLDivElement | null>(null);
+  const lastAnchorElRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!scholar.activeTerm || !lastAnchorElRef.current) {
+      setDefinitionAnchorRect(null);
+      return;
+    }
+
+    let rafId: number;
+    const updatePosition = () => {
+      const anchorNode = lastAnchorElRef.current;
+      const cardNode = definitionCardRef.current;
+      
+      if (anchorNode && cardNode) {
+        const rect = anchorNode.getBoundingClientRect();
+        const cLeft = Math.min(window.innerWidth - 332, Math.max(12, rect.left));
+        const aLeft = rect.left + (rect.width / 2) - cLeft;
+        
+        // Directly update DOM style for zero-lag scroll sync
+        cardNode.style.left = `${cLeft}px`;
+        cardNode.style.top = `${rect.top - 12}px`;
+        
+        // Find and update arrow position
+        const arrowNode = cardNode.querySelector('.definition-arrow') as HTMLElement | null;
+        if (arrowNode) {
+          arrowNode.style.left = `${Math.max(12, Math.min(290, aLeft))}px`;
+        }
+      }
+      
+      // Keep state in sync once the scroll settles
+      if (lastAnchorElRef.current) {
+        setDefinitionAnchorRect(lastAnchorElRef.current.getBoundingClientRect());
+      }
+    };
+
+    const handleScroll = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(updatePosition);
+    };
+
+    // Use capture phase for nested column scrolls
+    window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('resize', handleScroll);
+    
+    // Initial sync
+    updatePosition();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleScroll);
+      cancelAnimationFrame(rafId);
+    };
+  }, [scholar.activeTerm]);
 
   const activeTermMeta = useMemo(() => {
     if (!scholar.activeTerm) return null;
     const lower = scholar.activeTerm.toLowerCase();
-    return [
+    
+    // 1. Attempt to find the rich definition in the metadata pool
+    const pool = [
       ...content.keyTerms,
       ...(activeChunk?.keyTerms || []),
-    ].find((term) => term.term.toLowerCase() === lower) || null;
+    ];
+    const match = pool.find((term) => (term.term || '').toLowerCase() === lower);
+    
+    if (match) return match;
+
+    // 2. Defensive Fallback: If highlighted as jargon but no definition provided by AI
+    return {
+      term: scholar.activeTerm,
+      definition: 'A specific definition was not extracted for this term, but it is highlighted as significant jargon in the source material.',
+      examRelevance: 'Contextual term detected.',
+    };
   }, [activeChunk?.keyTerms, content.keyTerms, scholar.activeTerm]);
 
   const handlePickTermFromOriginal = useCallback((term: string, anchorEl: HTMLElement) => {
     if (scholar.activeTerm?.toLowerCase() === term.toLowerCase()) {
       // Toggle off on repeated click.
       setDefinitionAnchorRect(null);
+      lastAnchorElRef.current = null;
       scholar.selectTerm(null);
       return;
     }
 
     const rect = anchorEl.getBoundingClientRect();
+    lastAnchorElRef.current = anchorEl;
     setDefinitionAnchorRect(rect);
     scholar.selectTerm(term);
   }, [scholar]);
 
   const handlePickTermFromSimplified = useCallback((term: string, anchorEl: HTMLElement) => {
-    // Anchor not used here: simplified column should not show floating definitions.
-    void anchorEl;
     if (scholar.activeTerm?.toLowerCase() === term.toLowerCase()) {
       setDefinitionAnchorRect(null);
+      lastAnchorElRef.current = null;
       scholar.selectTerm(null);
       return;
     }
 
-    // Only the ORIGINAL (left) column shows the floating definition card.
-    setDefinitionAnchorRect(null);
+    const rect = anchorEl.getBoundingClientRect();
+    lastAnchorElRef.current = anchorEl;
+    setDefinitionAnchorRect(rect);
     scholar.selectTerm(term);
   }, [scholar]);
   const sourceTerms = useMemo(() => {
@@ -233,21 +301,34 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
     return () => document.removeEventListener('mousedown', onMouseDown);
   }, [scholar, scholar.activeTerm, scholar.selectTerm]);
 
+  const cardLeft = (definitionAnchorRect && typeof window !== 'undefined') 
+    ? Math.min(window.innerWidth - 332, Math.max(12, definitionAnchorRect.left))
+    : (definitionAnchorRect?.left || 0);
+  const arrowLeft = definitionAnchorRect 
+    ? definitionAnchorRect.left + (definitionAnchorRect.width / 2) - cardLeft
+    : 0;
+
   return (
     <div className="flex h-full flex-col gap-8 animate-fade-in-up duration-1000 max-w-7xl mx-auto py-10 px-6 md:px-10">
       <p className="sr-only" aria-live="polite">{statusMessage}</p>
 
-      {scholar.activeTerm && definitionAnchorRect && activeTermMeta && (
+      {scholar.activeTerm && definitionAnchorRect && activeTermMeta && typeof document !== 'undefined' && createPortal(
         <div
           ref={definitionCardRef}
-          className="fixed z-[100] max-w-[320px] rounded-[1rem] border border-border/40 bg-background/95 backdrop-blur-xl p-4 shadow-[0_30px_80px_rgba(0,0,0,0.25)]"
+          className="fixed z-[100] max-w-[320px] rounded-[1rem] border border-border/40 bg-background/95 backdrop-blur-xl p-4 shadow-[0_30px_80px_rgba(0,0,0,0.25)] animate-in fade-in zoom-in-95 duration-200"
           style={{
-            left: Math.max(12, definitionAnchorRect.left),
-            top: definitionAnchorRect.bottom + 10,
+            left: cardLeft,
+            top: definitionAnchorRect.top - 12,
+            transform: 'translateY(-100%)',
           }}
           role="dialog"
           aria-label="Term definition"
         >
+          {/* Directional Arrow (Now at bottom) */}
+          <div 
+            className="absolute -bottom-[6px] w-3 h-3 bg-background border-b border-r border-border/40 rotate-45 definition-arrow"
+            style={{ left: Math.max(12, Math.min(290, arrowLeft)) }}
+          />
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
               <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/55">
@@ -264,7 +345,8 @@ export default function ScholarPanel({ content }: ScholarPanelProps) {
           <p className="mt-2 text-xs font-semibold leading-relaxed text-primary/70">
             {activeTermMeta.examRelevance}
           </p>
-        </div>
+        </div>,
+        document.body
       )}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="space-y-3">
