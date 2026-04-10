@@ -28,7 +28,7 @@ export default function OptionButton({ option, isSelected, onClick }: OptionButt
           "w-6 h-6 rounded-lg border-[1.5px] flex items-center justify-center transition-all duration-300",
           isSelected
             ? "bg-primary border-primary shadow-sm rotate-0"
-            : "border-foreground/10 group-hover:border-primary/40 rotate-[-6deg]"
+            : "border-foreground/25 group-hover:border-primary/40 rotate-[-6deg]"
         )}>
           {isSelected && (
             <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 text-primary-foreground stroke-[4.5] animate-in fade-in duration-200">
@@ -40,7 +40,7 @@ export default function OptionButton({ option, isSelected, onClick }: OptionButt
         <div className="flex flex-col items-start justify-center gap-0">
           <span className={cn(
             "text-lg font-bold tracking-tight transition-all duration-300",
-            isSelected ? "text-foreground" : "text-foreground/80 group-hover:text-foreground"
+            isSelected ? "text-foreground" : "text-foreground/90 group-hover:text-foreground"
           )}>
             {option.label}
           </span>

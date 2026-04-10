@@ -62,6 +62,7 @@ export default function OnboardingPage() {
          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/3 blur-[120px] rounded-full animate-float delay-1000" />
       </div>
 
+      <div className="relative z-10 w-full flex flex-col items-center justify-center">
       {stage === 'survey' && (
         <OnboardingFlow 
           onBeginCalibration={() => {
@@ -102,6 +103,7 @@ export default function OnboardingPage() {
              </div>
           </div>
         )}
+      </div>
 
     </main>
   );

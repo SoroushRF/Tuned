@@ -194,7 +194,7 @@ export default function OnboardingFlow({ onBeginCalibration, onComplete }: Onboa
       <div className="w-full max-w-4xl flex flex-col items-center gap-12 md:gap-16">
         
         {/* Navigation & Progress Header */}
-        <div className="w-full max-w-2xl flex items-start gap-4 md:gap-8 opacity-90">
+        <div className="w-full max-w-2xl flex items-start gap-4 md:gap-8">
           {/* Always Present Back Button */}
               <button
                 onClick={handleBack}
@@ -202,8 +202,8 @@ export default function OnboardingFlow({ onBeginCalibration, onComplete }: Onboa
                 className={cn(
                   "p-4 rounded-full transition-all flex items-center justify-center shrink-0",
                   currentStep === 0
-                    ? "bg-secondary/5 text-foreground/10 cursor-not-allowed scale-90"
-                    : "bg-secondary/20 text-foreground/60 hover:bg-secondary/30 hover:text-foreground active:translate-y-[1px]"
+                    ? "bg-secondary/5 text-foreground/25 cursor-not-allowed scale-90"
+                    : "bg-secondary/20 text-foreground/70 hover:bg-secondary/30 hover:text-foreground active:translate-y-[1px]"
                 )}
                 title="Go Back"
               >

@@ -15,7 +15,7 @@ export default function FreeTextFallback({ value, onChange, onSubmit, placeholde
     <div className="w-full max-w-2xl mt-4 group transition-all duration-300 animate-in fade-in">
       <div className="flex flex-col gap-3">
         {/* Label */}
-        <label className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/70 ml-6 group-hover:text-primary transition-colors">
+        <label className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground ml-6 group-hover:text-primary transition-colors">
           None of these —
         </label>
 

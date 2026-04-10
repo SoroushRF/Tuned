@@ -61,10 +61,10 @@ export default function ProgressDots({ currentStep, totalSteps, onStepClick, ans
       </div>
 
       {/* Progress Label */}
-      <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground/60">
+      <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
         <span>Calibration Sequence</span>
         <span className="w-1 h-1 rounded-full bg-border" />
-        <span className="text-primary/60">{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
+        <span className="text-primary">{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
       </div>
     </div>
   );

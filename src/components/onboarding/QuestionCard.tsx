@@ -32,7 +32,7 @@ export default function QuestionCard({
           {question.text}
         </h2>
         {question.isMultiSelect && (
-          <p className="text-sm font-medium text-muted-foreground/70 uppercase tracking-widest">
+          <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
             Select all that apply
           </p>
         )}
